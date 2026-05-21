@@ -17,6 +17,9 @@ export interface SupabaseProduct {
   gradient: string | null;
   icon_name: string | null;
   image_url: string | null;
+  video_url: string | null;
+  details_url: string | null;
+  checkout_url: string | null;
   active: boolean;
   created_at: string;
   updated_at: string;

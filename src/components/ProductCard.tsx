@@ -8,12 +8,14 @@ interface ProductCardProps {
   product: Product;
   onOpenDetails: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
+  onOpenVideo?: (videoUrl: string) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onOpenDetails,
-  onAddToCart
+  onAddToCart,
+  onOpenVideo
 }) => {
   
   // Dynamic header copy and mockup visualization based on category/name
@@ -218,10 +220,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-black bg-white hover:bg-gray-50 flex items-center justify-center gap-1.5 transition-all duration-200"
             >
               <ShoppingCart size={13} />
-              Carrinho
+              Adicionar
             </button>
             <button 
-              onClick={() => onOpenDetails(product)} // Opens details which has checkout step
+              onClick={(e) => {
+                e.stopPropagation();
+                if (product.checkoutUrl) {
+                  window.location.href = product.checkoutUrl;
+                } else {
+                  onOpenDetails(product);
+                }
+              }}
               className="flex-1 py-2.5 rounded-xl bg-[#047857] hover:bg-[#065f46] text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm"
             >
               <Zap size={13} />
@@ -229,14 +238,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </button>
           </div>
 
-          {/* Buttons Row 2: Ver Demo (Full Width) */}
-          <button 
-            onClick={() => onOpenDetails(product)}
-            className="w-full mt-2.5 py-2.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#2563EB] text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
-          >
-            <Globe size={13} />
-            Ver Demo
-          </button>
+          {/* Buttons Row 2: Ver Vídeo e Ver Mais */}
+          <div className="flex items-center gap-2.5 mt-2.5 w-full">
+            {product.videoUrl && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onOpenVideo) {
+                    onOpenVideo(product.videoUrl!);
+                  } else {
+                    window.dispatchEvent(new CustomEvent('open-video', { detail: product.videoUrl }));
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
+              >
+                Ver Vídeo
+              </button>
+            )}
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (product.detailsUrl) {
+                  window.open(product.detailsUrl, '_blank');
+                } else {
+                  onOpenDetails(product);
+                }
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#2563EB] text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
+            >
+              <Globe size={13} />
+              Ver Mais
+            </button>
+          </div>
         </div>
 
       </div>

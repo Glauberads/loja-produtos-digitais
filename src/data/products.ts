@@ -12,6 +12,9 @@ export interface Product {
   techStack: string[];
   gradient: string;
   iconName: string;
+  videoUrl?: string;
+  detailsUrl?: string;
+  checkoutUrl?: string;
 }
 
 export const PRODUCTS_DATA: Product[] = [

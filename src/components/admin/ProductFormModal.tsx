@@ -26,7 +26,8 @@ interface ProductFormModalProps {
 const emptyForm = (): ProductInput => ({
   slug: '', name: '', category: 'SaaS', short_description: '', long_description: '',
   price: 0, rating: 5.0, sales_count: 0, badge: null, features: [], tech_stack: [],
-  gradient: GRADIENTS[0], icon_name: 'Box', image_url: null, active: true,
+  gradient: GRADIENTS[0], icon_name: 'Box', image_url: null,
+  video_url: null, details_url: null, checkout_url: null, active: true,
 });
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, onSave }) => {
@@ -217,6 +218,28 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onC
             <div>
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL da Imagem</label>
               <input value={form.image_url || ''} onChange={e => set('image_url', e.target.value || null)}
+                placeholder="https://..."
+                className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all" />
+            </div>
+          </div>
+
+          {/* Novos Campos: Video, Detalhes e Checkout */}
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL do Vídeo</label>
+              <input value={form.video_url || ''} onChange={e => set('video_url', e.target.value || null)}
+                placeholder="https://youtube.com/..."
+                className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL Ver Mais</label>
+              <input value={form.details_url || ''} onChange={e => set('details_url', e.target.value || null)}
+                placeholder="https://..."
+                className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL do Checkout</label>
+              <input value={form.checkout_url || ''} onChange={e => set('checkout_url', e.target.value || null)}
                 placeholder="https://..."
                 className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all" />
             </div>

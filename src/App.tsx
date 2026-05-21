@@ -14,6 +14,8 @@ import type { Product } from './data/products';
 import { TechIcon } from './components/TechIcon';
 import { supabase } from './lib/supabase';
 import { ShoppingCart, Trash2, X, ShieldCheck, Zap } from 'lucide-react';
+import { useProducts } from './hooks/useProducts';
+import { ProductVideoModal } from './components/ProductVideoModal';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -24,6 +26,43 @@ function App() {
   const [notification, setNotification] = React.useState<string | null>(null);
   const [simulatedCheckoutActive, setSimulatedCheckoutActive] = React.useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = React.useState(false);
+  const [videoModalUrl, setVideoModalUrl] = React.useState<string | null>(null);
+
+  const { products: dbProducts, loading, error } = useProducts(false);
+
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setVideoModalUrl(customEvent.detail);
+    };
+    window.addEventListener('open-video', handler);
+    return () => window.removeEventListener('open-video', handler);
+  }, []);
+
+  const displayProducts = React.useMemo(() => {
+    if (!loading && !error && dbProducts && dbProducts.length > 0) {
+      const sorted = [...dbProducts].sort((a, b) => b.sales_count - a.sales_count);
+      return sorted.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category as any,
+        shortDescription: p.short_description || '',
+        longDescription: p.long_description || '',
+        price: p.price,
+        rating: p.rating,
+        salesCount: p.sales_count,
+        badge: p.badge as any,
+        features: p.features || [],
+        techStack: p.tech_stack || [],
+        gradient: p.gradient || 'from-blue-600/20 via-indigo-600/30 to-brand-black',
+        iconName: p.icon_name || 'Box',
+        videoUrl: p.video_url || undefined,
+        detailsUrl: p.details_url || undefined,
+        checkoutUrl: p.checkout_url || undefined
+      }));
+    }
+    return PRODUCTS_DATA;
+  }, [dbProducts, loading, error]);
 
   // Cart operations
   const handleAddToCart = (product: Product, e?: React.MouseEvent) => {
@@ -119,20 +158,20 @@ function App() {
 
       {/* Lançamentos Premium (Destaques) */}
       <FeaturedSection 
-        products={PRODUCTS_DATA}
+        products={displayProducts}
         onOpenDetails={setSelectedProduct}
       />
 
       {/* Os Mais Vendidos (Carrossel) */}
       <BestSellers
-        products={PRODUCTS_DATA}
+        products={displayProducts}
         onOpenDetails={setSelectedProduct}
         onAddToCart={handleAddToCart}
       />
 
       {/* Catálogo Principal de Produtos com Filtros Laterais */}
       <ProductGrid
-        products={PRODUCTS_DATA}
+        products={displayProducts}
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -143,7 +182,7 @@ function App() {
 
       {/* Sistemas em Alta */}
       <TrendingSection
-        products={PRODUCTS_DATA}
+        products={displayProducts}
         onOpenDetails={setSelectedProduct}
       />
 
@@ -339,6 +378,14 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Video Modal */}
+      {videoModalUrl && (
+        <ProductVideoModal 
+          videoUrl={videoModalUrl} 
+          onClose={() => setVideoModalUrl(null)} 
+        />
       )}
 
     </div>

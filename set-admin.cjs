@@ -8,14 +8,14 @@ const client = new Client({
 async function main() {
   try {
     await client.connect();
-    const userId = '0a105eb2-920c-4474-b037-a531586f2261';
+    const userId = 'd15db09a-d620-4eab-bf6e-a5ff290c1d95';
     
     const { rows: authRows } = await client.query(
       `SELECT email FROM auth.users WHERE id = $1`,
       [userId]
     );
     
-    let email = 'admin@nexussaas.com';
+    let email = 'user@omelhordodigital.com.br';
     if (authRows.length > 0) {
       email = authRows[0].email;
       console.log(`Encontrado email na auth.users: ${email}`);
