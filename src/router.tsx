@@ -13,6 +13,7 @@ import { CustomersPage } from './pages/admin/CustomersPage';
 import { ReviewsPage } from './pages/admin/ReviewsPage';
 import { SettingsPage } from './pages/admin/SettingsPage';
 import { LogsPage } from './pages/admin/LogsPage';
+import { AdminsPage } from './pages/admin/AdminsPage';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: 'integrations', element: <IntegrationsPage /> },
       { path: 'orders', element: <OrdersPage /> },
       { path: 'customers', element: <CustomersPage /> },
+      { path: 'admins', element: <AdminsPage /> },
       { path: 'reviews', element: <ReviewsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'logs', element: <LogsPage /> },

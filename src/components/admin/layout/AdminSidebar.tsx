@@ -24,7 +24,7 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
-  const { user, logout } = useAdminAuth();
+  const { user, role, logout } = useAdminAuth();
   const location = useLocation();
 
   const mainMenu = [
@@ -37,6 +37,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
   const extrasMenu = [
     { label: 'Pedidos', icon: ShoppingCart, path: '/admin/orders' },
     { label: 'Clientes', icon: Users, path: '/admin/customers' },
+    ...(role === 'super_admin' ? [{ label: 'Administradores', icon: ShieldCheck, path: '/admin/admins' }] : []),
     { label: 'Avaliações', icon: Star, path: '/admin/reviews' },
     { label: 'Analytics', icon: LineChart, path: '/admin/analytics' },
     { label: 'Configurações', icon: Settings, path: '/admin/settings' },

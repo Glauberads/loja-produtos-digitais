@@ -6,6 +6,7 @@ interface AdminAuthState {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  role: string | null;
   loading: boolean;
   error: string | null;
 }
@@ -15,21 +16,22 @@ export function useAdminAuth() {
     user: null,
     session: null,
     isAdmin: false,
+    role: null,
     loading: true,
     error: null,
   });
 
-  const checkIsAdmin = async (userId: string): Promise<boolean> => {
+  const fetchAdminDetails = async (userId: string): Promise<{ isAdmin: boolean; role: string | null }> => {
     try {
       const { data, error } = await supabase
         .from('admin_users')
-        .select('user_id')
+        .select('role')
         .eq('user_id', userId)
         .single();
-      if (error) return false;
-      return !!data;
+      if (error || !data) return { isAdmin: false, role: null };
+      return { isAdmin: true, role: data.role };
     } catch {
-      return false;
+      return { isAdmin: false, role: null };
     }
   };
 
@@ -37,20 +39,20 @@ export function useAdminAuth() {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const isAdmin = await checkIsAdmin(session.user.id);
-        setState({ user: session.user, session, isAdmin, loading: false, error: null });
+        const { isAdmin, role } = await fetchAdminDetails(session.user.id);
+        setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
       } else {
-        setState({ user: null, session: null, isAdmin: false, loading: false, error: null });
+        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const isAdmin = await checkIsAdmin(session.user.id);
-        setState({ user: session.user, session, isAdmin, loading: false, error: null });
+        const { isAdmin, role } = await fetchAdminDetails(session.user.id);
+        setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
       } else {
-        setState({ user: null, session: null, isAdmin: false, loading: false, error: null });
+        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
       }
     });
 
@@ -63,12 +65,13 @@ export function useAdminAuth() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (data.user) {
-        const isAdmin = await checkIsAdmin(data.user.id);
+        const { isAdmin, role } = await fetchAdminDetails(data.user.id);
         if (!isAdmin) {
           await supabase.auth.signOut();
-          setState(prev => ({ ...prev, loading: false, error: 'Acesso negado. Você não é um administrador autorizado.' }));
+          setState(prev => ({ ...prev, loading: false, role: null, error: 'Acesso negado. Você não é um administrador autorizado.' }));
           return false;
         }
+        setState(prev => ({ ...prev, isAdmin, role, loading: false }));
       }
       return true;
     } catch (err: unknown) {
