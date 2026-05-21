@@ -115,7 +115,7 @@ export const AdminsPage: React.FC = () => {
     try {
       const { error: updateError } = await supabase
         .from('admin_users')
-        .update({ role: selectedRole, updated_at: new Date().toISOString() })
+        .update({ role: selectedRole })
         .eq('user_id', selectedAdmin.user_id);
 
       if (updateError) throw updateError;
