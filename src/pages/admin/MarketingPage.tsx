@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Megaphone, Ticket, Search, TrendingUp, Plus, Trash2, Copy, CheckCircle2,
-  X, Save, Eye, EyeOff, Tag, Globe, Image, ExternalLink, AlertCircle, Check
+  Ticket, Search, TrendingUp, Plus, Trash2, Copy, CheckCircle2,
+  X, Save, Eye, EyeOff, Tag, Globe, Image, AlertCircle, Check
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
