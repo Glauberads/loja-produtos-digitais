@@ -639,7 +639,11 @@ export const IntegrationsPage: React.FC = () => {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSavedConfigs(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Delaying setState to avoid synchronous call in useEffect body
+        setTimeout(() => setSavedConfigs(parsed), 0);
+      }
     } catch {
       // ignora
     }

@@ -9,7 +9,6 @@ interface ProductGridProps {
   searchQuery: string;
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
-  cartCount: number;
   onOpenDetails: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
 }

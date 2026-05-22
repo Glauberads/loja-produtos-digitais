@@ -26,6 +26,33 @@ const trafficData = [
   { time: '23:59', visitors: 90 },
 ];
 
+// Mock real‑time visitor count – starts at 12 as per spec
+const KpiCard = ({ title, value, change, isPositive, icon: Icon, delay }: any) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay }}
+    className="p-5 rounded-2xl bg-[#0B1020]/50 border border-white/5 backdrop-blur-md group hover:border-brand-orange/30 transition-all"
+  >
+    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+      <Icon size={48} className="text-white" />
+    </div>
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 rounded-lg bg-white/5 text-white/70 group-hover:text-brand-orange group-hover:bg-brand-orange/10 transition-colors">
+        <Icon size={18} />
+      </div>
+      <span className="text-sm font-medium text-white/60">{title}</span>
+    </div>
+    <div className="flex items-baseline gap-2 mb-1">
+      <h3 className="text-3xl font-black text-white">{value}</h3>
+    </div>
+    <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+      {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+      <span>{change} vs último mês</span>
+    </div>
+  </motion.div>
+);
+
 export const DashboardPage: React.FC = () => {
   // Mock real‑time visitor count – starts at 12 as per spec
   const [onlineVisitors, setOnlineVisitors] = useState(12);
@@ -46,32 +73,6 @@ export const DashboardPage: React.FC = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  const KpiCard = ({ title, value, change, isPositive, icon: Icon, delay }: any) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      className="p-5 rounded-2xl bg-[#0B1020]/50 border border-white/5 backdrop-blur-md group hover:border-brand-orange/30 transition-all"
-    >
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <Icon size={48} className="text-white" />
-      </div>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-white/5 text-white/70 group-hover:text-brand-orange group-hover:bg-brand-orange/10 transition-colors">
-          <Icon size={18} />
-        </div>
-        <span className="text-sm font-medium text-white/60">{title}</span>
-      </div>
-      <div className="flex items-baseline gap-2 mb-1">
-        <h3 className="text-3xl font-black text-white">{value}</h3>
-      </div>
-      <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-        {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-        <span>{change} vs último mês</span>
-      </div>
-    </motion.div>
-  );
 
   return (
     <div className="space-y-6">

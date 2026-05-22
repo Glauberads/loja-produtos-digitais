@@ -12,7 +12,7 @@ interface BestSellersProps {
 export const BestSellers: React.FC<BestSellersProps> = ({
   products,
   onOpenDetails,
-  onAddToCart,
+  onAddToCart
 }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 

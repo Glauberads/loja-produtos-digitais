@@ -3,6 +3,9 @@ import { ShoppingCart, Globe, CreditCard, Zap } from 'lucide-react';
 import type { Product } from '../data/products';
 import { TechIcon } from './TechIcon';
 import { motion } from 'framer-motion';
+import { useDiscountWheel, type DiscountData } from '../hooks/useDiscountWheel';
+import { DiscountCountdown } from './wheel/DiscountCountdown';
+import { useDiscountWheelContext } from '../context/DiscountWheelContext';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +20,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   onOpenVideo
 }) => {
+  const { openWheel } = useDiscountWheelContext();
+  const { getActiveDiscount, clearExpiredDiscount, buildCheckoutUrl } = useDiscountWheel();
+  const [activeDiscount, setActiveDiscount] = React.useState<DiscountData | null>(null);
+  const [copiedCoupon, setCopiedCoupon] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkDiscount = () => {
+      const discount = getActiveDiscount(product.id);
+      setActiveDiscount(discount);
+    };
+    
+    checkDiscount();
+    
+    window.addEventListener('storage', checkDiscount);
+    return () => window.removeEventListener('storage', checkDiscount);
+  }, [product.id, getActiveDiscount]);
+
+  // Removed handleOpenWheel to use inline directly as requested
+
+  const handleCopyCoupon = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeDiscount) {
+      navigator.clipboard.writeText(activeDiscount.coupon);
+      setCopiedCoupon(true);
+      setTimeout(() => setCopiedCoupon(false), 2000);
+    }
+  };
   
   // Dynamic header copy and mockup visualization based on category/name
   const getHeaderDetails = () => {
@@ -72,9 +102,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
         </div>
         <div className="absolute top-3 right-3 z-10">
-          <span className="bg-[#F97316] text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider">
-            GANHE ATÉ 20% OFF
-          </span>
+          {!activeDiscount ? (
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof openWheel === 'function') {
+                  openWheel(product);
+                } else {
+                  console.error("ERRO FATAL: openWheel não é uma função. ProductCard está FORA do DiscountWheelProvider!");
+                }
+              }}
+              className="bg-[#F97316] hover:bg-brand-neonOrange text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider transition-colors animate-pulse"
+            >
+              BOTÃO REAL DA ROLETA
+            </button>
+          ) : (
+            <div className="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider flex items-center gap-1">
+              <span>{activeDiscount.discount}% OFF ATIVO</span>
+            </div>
+          )}
         </div>
 
         {/* Headline dynamic text */}
@@ -200,18 +248,56 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Price Section */}
         <div>
           {/* Card Price */}
-          <div className="flex items-center gap-1.5 text-xs text-[#374151] mt-4 font-bold">
-            <CreditCard size={13} className="text-gray-500" />
-            <span>
-              R$ {product.price.toFixed(2)} <span className="text-gray-400 font-normal">NO CARTÃO</span>
-            </span>
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-1.5 text-xs text-[#374151] font-bold">
+              <CreditCard size={13} className="text-gray-500" />
+              {activeDiscount ? (
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-400 line-through">R$ {product.price.toFixed(2)}</span>
+                  <span className="text-sm text-emerald-600 font-black">R$ {activeDiscount.discountedPrice.toFixed(2)}</span>
+                </div>
+              ) : (
+                <span>
+                  R$ {product.price.toFixed(2)} <span className="text-gray-400 font-normal">NO CARTÃO</span>
+                </span>
+              )}
+            </div>
+            
+            {activeDiscount && (
+              <DiscountCountdown 
+                expiresAt={activeDiscount.expiresAt} 
+                onExpire={() => clearExpiredDiscount(product.id)}
+              />
+            )}
           </div>
 
           {/* Green Discount Offer Banner */}
-          <div className="mt-2.5 py-1.5 px-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center gap-1 w-full text-[11px] font-black text-[#059669]">
-            <span>🎁 Pague só R$ {(product.price * 0.8).toFixed(2)}</span>
-            <span className="text-[8px] text-[#34D399] font-bold uppercase tracking-wider">CLIQUE PARA GANHAR</span>
-          </div>
+          {!activeDiscount ? (
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openWheel(product);
+              }}
+              className="mt-2.5 py-1.5 px-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] hover:bg-[#D1FAE5] flex items-center justify-center gap-1 w-full text-[11px] font-black text-[#059669] transition-colors"
+            >
+              <span>🎁 Pague só R$ {(product.price * 0.8).toFixed(2)}</span>
+              <span className="text-[8px] text-[#34D399] font-bold uppercase tracking-wider bg-white/50 px-1.5 py-0.5 rounded">CLIQUE PARA GANHAR</span>
+            </button>
+          ) : (
+            <div className="mt-2.5 flex items-center gap-2">
+              <div className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center gap-1 text-[11px] font-black text-emerald-700">
+                <span>CUPOM: {activeDiscount.coupon}</span>
+              </div>
+              <button 
+                onClick={handleCopyCoupon}
+                className="py-1.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-[10px] font-bold text-gray-600 transition-colors"
+              >
+                {copiedCoupon ? 'COPIADO!' : 'COPIAR'}
+              </button>
+            </div>
+          )}
 
           {/* Buttons Row 1: Carrinho + Comprar */}
           <div className="flex items-center gap-2.5 mt-3 w-full">
@@ -225,8 +311,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                if (product.checkoutUrl) {
-                  window.location.href = product.checkoutUrl;
+                const targetUrl = buildCheckoutUrl(product.checkoutUrl, activeDiscount);
+                if (targetUrl && targetUrl !== '#') {
+                  window.location.href = targetUrl;
                 } else {
                   onOpenDetails(product);
                 }

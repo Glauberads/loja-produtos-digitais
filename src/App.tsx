@@ -16,6 +16,7 @@ import { supabase } from './lib/supabase';
 import { ShoppingCart, Trash2, X, ShieldCheck, Zap } from 'lucide-react';
 import { useProducts } from './hooks/useProducts';
 import { ProductVideoModal } from './components/ProductVideoModal';
+import { DiscountWheelProvider } from './context/DiscountWheelContext';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -27,16 +28,18 @@ function App() {
   const [simulatedCheckoutActive, setSimulatedCheckoutActive] = React.useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = React.useState(false);
   const [videoModalUrl, setVideoModalUrl] = React.useState<string | null>(null);
-
   const { products: dbProducts, loading, error } = useProducts(false);
 
   React.useEffect(() => {
-    const handler = (e: Event) => {
+    const videoHandler = (e: Event) => {
       const customEvent = e as CustomEvent;
       setVideoModalUrl(customEvent.detail);
     };
-    window.addEventListener('open-video', handler);
-    return () => window.removeEventListener('open-video', handler);
+    window.addEventListener('open-video', videoHandler);
+    
+    return () => {
+      window.removeEventListener('open-video', videoHandler);
+    };
   }, []);
 
   const displayProducts = React.useMemo(() => {
@@ -48,8 +51,8 @@ function App() {
         category: p.category as any,
         shortDescription: p.short_description || '',
         longDescription: p.long_description || '',
-        price: p.price,
-        rating: p.rating,
+        price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+        rating: typeof p.rating === 'string' ? parseFloat(p.rating) : p.rating,
         salesCount: p.sales_count,
         badge: p.badge as any,
         features: p.features || [],
@@ -122,9 +125,10 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-brand-black overflow-x-hidden">
-      
-      {/* Background Neon Blur Nodes */}
+    <DiscountWheelProvider>
+      <div className="relative min-h-screen bg-brand-black overflow-x-hidden">
+        
+        {/* Background Neon Blur Nodes */}
       <div className="absolute top-[8%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none"></div>
       <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-brand-orange/5 blur-[140px] pointer-events-none"></div>
       <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-brand-darkBlue/20 blur-[130px] pointer-events-none"></div>
@@ -175,7 +179,6 @@ function App() {
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
-        cartCount={cart.length}
         onOpenDetails={setSelectedProduct}
         onAddToCart={handleAddToCart}
       />
@@ -388,7 +391,8 @@ function App() {
         />
       )}
 
-    </div>
+      </div>
+    </DiscountWheelProvider>
   );
 }
 
