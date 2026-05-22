@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Ticket, Search, TrendingUp, Plus, Trash2, Copy, CheckCircle2,
-  X, Save, Eye, EyeOff, Tag, Globe, Image, AlertCircle, Check
+  Save, Eye, EyeOff, Tag, Globe, Image, AlertCircle, Check
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
