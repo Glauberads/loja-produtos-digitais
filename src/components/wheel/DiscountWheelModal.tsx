@@ -15,13 +15,7 @@ interface DiscountWheelModalProps {
 export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, product, onClose }) => {
   console.log("MODAL ROLETA PROPS", { isOpen, product });
 
-  if (isOpen && product) {
-    return (
-      <div className="fixed inset-0 z-[99999] bg-black text-white flex items-center justify-center">
-        MODAL DA ROLETA ABERTO
-      </div>
-    );
-  }
+
 
   if (!isOpen || !product) return null;
 

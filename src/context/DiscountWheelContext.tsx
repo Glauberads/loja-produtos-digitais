@@ -36,12 +36,7 @@ export const DiscountWheelProvider: React.FC<DiscountWheelProviderProps> = ({ ch
     <DiscountWheelContext.Provider value={{ wheelProduct, isWheelOpen, openWheel, closeWheel }}>
       {children}
 
-      {/* Temporary visual fallback for debugging */}
-      {isWheelOpen && wheelProduct && (
-        <div className="fixed inset-0 z-[999999] bg-red-600 text-white flex items-center justify-center pointer-events-auto">
-          TESTE CONTEXT MODAL
-        </div>
-      )}
+
 
       {/* Real Modal */}
       <DiscountWheelModal

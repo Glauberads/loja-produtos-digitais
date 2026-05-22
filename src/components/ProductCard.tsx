@@ -87,21 +87,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     >
       
       {/* 1. TOP PORTION (Gradient + Mockup Header) */}
-      <div 
-        onClick={() => onOpenDetails(product)}
-        className="relative w-full h-[250px] bg-gradient-to-tr from-[#DCE8FC] via-[#E8F0FE] to-[#F1EEFC] border-b border-gray-100 flex flex-col justify-between overflow-hidden cursor-pointer"
-      >
+      <div className="relative w-full h-[250px] bg-gradient-to-tr from-[#DCE8FC] via-[#E8F0FE] to-[#F1EEFC] border-b border-gray-100 flex flex-col justify-between overflow-hidden">
+        
+        {/* CLICKABLE OVERLAY FOR PRODUCT DETAILS */}
+        <div 
+          onClick={() => onOpenDetails(product)}
+          className="absolute inset-0 z-0 cursor-pointer"
+        />
         
         {/* Abstract light grid background */}
-        <div className="absolute inset-0 bg-[radial-gradient(#bfdbfe_1px,transparent_1px)] [background-size:16px_16px] opacity-25"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(#bfdbfe_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none"></div>
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-3 left-3 z-10 pointer-events-none">
           <span className="bg-[#EAB308] text-white text-[9px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wider">
             ★ DESTAQUE
           </span>
         </div>
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 right-3 z-20">
           {!activeDiscount ? (
             <button 
               type="button"
@@ -114,9 +117,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   console.error("ERRO FATAL: openWheel não é uma função. ProductCard está FORA do DiscountWheelProvider!");
                 }
               }}
-              className="bg-[#F97316] hover:bg-brand-neonOrange text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider transition-colors animate-pulse"
+              className="bg-[#F97316] hover:bg-brand-neonOrange text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider transition-colors cursor-pointer relative"
             >
-              BOTÃO REAL DA ROLETA
+              GANHE ATÉ 20% OFF
             </button>
           ) : (
             <div className="bg-emerald-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full shadow-sm uppercase tracking-wider flex items-center gap-1">
@@ -126,7 +129,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Headline dynamic text */}
-        <div className="text-center px-4 pt-11 z-10">
+        <div className="text-center px-4 pt-11 z-10 pointer-events-none">
           <h4 className="text-[11px] sm:text-xs font-black text-gray-800 leading-snug">
             {headline.split(' ').map((word, i) => {
               const highlightWords = ['WhatsApp', 'Inteligência', 'Artificial', product.name];
@@ -142,7 +145,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Mockups Container */}
-        <div className="flex items-center justify-center gap-2.5 px-4 my-auto relative z-10">
+        <div className="flex items-center justify-center gap-2.5 px-4 my-auto relative z-10 pointer-events-none">
           
           {/* A. 3D Product Box Software Mockup */}
           <div className="w-[45px] h-[65px] rounded-lg bg-gradient-to-br from-brand-orange to-brand-neonOrange flex flex-col items-center justify-between p-1.5 shadow-[2px_4px_10px_rgba(0,0,0,0.15)] relative transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 border border-white/20 shrink-0">
