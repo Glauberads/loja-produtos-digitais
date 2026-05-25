@@ -1,6 +1,12 @@
 const { Client } = require('pg');
+require('dotenv').config();
 
-const connectionString = 'postgresql://postgres:Glps162487$@db.rgqawadlrhzwgfagnrmy.supabase.co:5432/postgres';
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("ERRO: Variável de ambiente DATABASE_URL não encontrada no .env");
+  process.exit(1);
+}
+
 const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
 
 const PRODUCTS = [
@@ -84,6 +90,12 @@ async function main() {
         role text default 'super_admin',
         created_at timestamp with time zone default timezone('utc', now())
       );
+      create table if not exists admin_settings (
+        id text primary key,
+        value jsonb not null,
+        created_at timestamp with time zone default timezone('utc', now()),
+        updated_at timestamp with time zone default timezone('utc', now())
+      );
     `);
     console.log('✅ Tabelas criadas!');
 
@@ -92,6 +104,7 @@ async function main() {
     await client.query(`
       alter table products enable row level security;
       alter table admin_users enable row level security;
+      alter table admin_settings enable row level security;
 
       drop policy if exists "Produtos ativos são públicos" on products;
       create policy "Produtos ativos são públicos"
@@ -112,6 +125,23 @@ async function main() {
       create policy "Admin pode ler seu próprio registro"
         on admin_users for select
         using (user_id = auth.uid());
+
+      drop policy if exists "Somente admins podem ler settings" on admin_settings;
+      create policy "Somente admins podem ler settings"
+        on admin_settings for select
+        using (
+          exists (select 1 from admin_users where admin_users.user_id = auth.uid())
+        );
+        
+      drop policy if exists "Somente admins podem editar settings" on admin_settings;
+      create policy "Somente admins podem editar settings"
+        on admin_settings for all
+        using (
+          exists (select 1 from admin_users where admin_users.user_id = auth.uid())
+        )
+        with check (
+          exists (select 1 from admin_users where admin_users.user_id = auth.uid())
+        );
     `);
     console.log('✅ RLS configurado!');
 

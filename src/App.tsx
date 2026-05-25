@@ -17,6 +17,9 @@ import { ShoppingCart, Trash2, X, ShieldCheck, Zap } from 'lucide-react';
 import { useProducts } from './hooks/useProducts';
 import { ProductVideoModal } from './components/ProductVideoModal';
 import { DiscountWheelProvider } from './context/DiscountWheelContext';
+import { FloatingChatButton } from './components/chat/FloatingChatButton';
+import { WebChatWindow } from './components/chat/WebChatWindow';
+import { useWebChat } from './hooks/useWebChat';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -29,6 +32,8 @@ function App() {
   const [checkoutSuccess, setCheckoutSuccess] = React.useState(false);
   const [videoModalUrl, setVideoModalUrl] = React.useState<string | null>(null);
   const { products: dbProducts, loading, error } = useProducts(false);
+  
+  const { isOpen: isChatOpen, setIsOpen: setIsChatOpen } = useWebChat();
 
   React.useEffect(() => {
     const videoHandler = (e: Event) => {
@@ -390,6 +395,10 @@ function App() {
           onClose={() => setVideoModalUrl(null)} 
         />
       )}
+
+      {/* Intelligent Web Chat */}
+      <FloatingChatButton isOpen={isChatOpen} onClick={() => setIsChatOpen(true)} />
+      <WebChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
       </div>
     </DiscountWheelProvider>

@@ -14,7 +14,9 @@ import {
   LogOut,
   Zap,
   ShieldCheck,
-  X
+  X,
+  Bot,
+  MessageSquare
 } from 'lucide-react';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 
@@ -29,6 +31,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
 
   const mainMenu = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+    { label: 'Leads', icon: MessageSquare, path: '/admin/leads' },
     { label: 'Produtos', icon: Package, path: '/admin/products' },
     { label: 'Marketing', icon: Megaphone, path: '/admin/marketing' },
     { label: 'Integrações', icon: Network, path: '/admin/integrations' },
@@ -41,6 +44,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     { label: 'Avaliações', icon: Star, path: '/admin/reviews' },
     { label: 'Analytics', icon: LineChart, path: '/admin/analytics' },
     { label: 'Configurações', icon: Settings, path: '/admin/settings' },
+    { label: 'Chat IA', icon: Bot, path: '/admin/ai-settings' },
     { label: 'Logs do Sistema', icon: Activity, path: '/admin/logs' },
   ];
 

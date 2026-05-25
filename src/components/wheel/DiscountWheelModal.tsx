@@ -13,18 +13,16 @@ interface DiscountWheelModalProps {
 }
 
 export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, product, onClose }) => {
-  console.log("MODAL ROLETA PROPS", { isOpen, product });
-
-
-
-  if (!isOpen || !product) return null;
-
   const { spinWheel, generateCoupon, discountOptions } = useDiscountWheel();
   
   const [isSpinning, setIsSpinning] = useState(false);
   const [targetValue, setTargetValue] = useState<number | null>(null);
   const [result, setResult] = useState<DiscountData | null>(null);
   const [copied, setCopied] = useState(false);
+
+  console.log("MODAL ROLETA PROPS", { isOpen, product });
+
+  if (!isOpen || !product) return null;
 
   const handleSpinClick = () => {
     if (isSpinning || result) return;

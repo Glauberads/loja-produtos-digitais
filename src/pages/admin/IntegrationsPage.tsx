@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Database, CreditCard, MessageSquare, Bot, Cpu, Webhook,
@@ -33,7 +33,6 @@ interface GatewayDef {
   icon: any;
 }
 
-type SavedConfigs = Record<string, Record<string, string>>;
 
 // ──────────────────────────────────────────────
 //  Definição dos Gateways
@@ -625,50 +624,34 @@ const OTHER_INTEGRATIONS = [
   },
 ];
 
+import { useIntegrations } from '../../hooks/useIntegrations';
+
 // ──────────────────────────────────────────────
 //  Página Principal
 // ──────────────────────────────────────────────
-const STORAGE_KEY = 'payment_gateway_configs';
-
 export const IntegrationsPage: React.FC = () => {
-  const [savedConfigs, setSavedConfigs] = useState<SavedConfigs>({});
+  const { savedConfigs, updateIntegrations } = useIntegrations();
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-
-  // Carregar do localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // Delaying setState to avoid synchronous call in useEffect body
-        setTimeout(() => setSavedConfigs(parsed), 0);
-      }
-    } catch {
-      // ignora
-    }
-  }, []);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleSave = (id: string, values: Record<string, string>) => {
+  const handleSave = async (id: string, values: Record<string, string>) => {
     const updated = { ...savedConfigs, [id]: values };
-    setSavedConfigs(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await updateIntegrations(updated);
     const name = PAYMENT_GATEWAYS.find((g) => g.id === id)?.name 
       || MARKETING_INTEGRATIONS.find((g) => g.id === id)?.name 
       || COMMUNICATION_INTEGRATIONS.find((g) => g.id === id)?.name;
     showToast(`${name} configurado com sucesso!`);
   };
 
-  const handleDisconnect = (id: string) => {
+  const handleDisconnect = async (id: string) => {
     const updated = { ...savedConfigs };
     delete updated[id];
-    setSavedConfigs(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await updateIntegrations(updated);
     setActiveModal(null);
     const name = PAYMENT_GATEWAYS.find((g) => g.id === id)?.name 
       || MARKETING_INTEGRATIONS.find((g) => g.id === id)?.name 
