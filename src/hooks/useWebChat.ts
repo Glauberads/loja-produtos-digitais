@@ -136,6 +136,7 @@ export function useWebChat() {
     }
 
     try {
+      console.log("ENVIANDO PARA IA", text);
       // Call Edge Function
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: { 
@@ -164,13 +165,13 @@ export function useWebChat() {
         }]).then();
       }
 
-    } catch (err) {
-      console.error('Error sending message:', err);
+    } catch (err: any) {
+      console.error('ERRO IA:', err);
       // Fallback
       const errorMsg: Message = {
         id: crypto.randomUUID(),
-        role: 'system',
-        content: 'Desculpe, ocorreu um erro de conexão. Tente novamente mais tarde.',
+        role: 'assistant',
+        content: `Nosso assistente está temporariamente indisponível 😊\nVocê pode falar diretamente no WhatsApp.\n\n*(Erro técnico: ${err.message})*`,
         created_at: new Date().toISOString()
       };
       saveHistory([...updatedMsgs, errorMsg]);

@@ -12,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory } = await req.json()
+    const body = await req.json()
+    const { message, conversationHistory } = body
+    console.log("BODY RECEBIDO", body)
 
     // Initialize Supabase Client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -33,6 +35,8 @@ serve(async (req) => {
       .limit(1)
       .single()
 
+    console.log("CONFIG IA", aiSettings)
+
     if (settingsError || !aiSettings) {
       throw new Error('AI settings not configured')
     }
@@ -49,6 +53,9 @@ serve(async (req) => {
     const model = aiSettings.model
     const systemPrompt = aiSettings.system_prompt
     const temperature = aiSettings.temperature || 0.7
+
+    console.log("PROVIDER", provider)
+    console.log("MODEL", model)
 
     if (!apiKey) {
       throw new Error('API key is missing in AI settings')
