@@ -7,12 +7,14 @@ interface BestSellersProps {
   products: Product[];
   onOpenDetails: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
+  onOpenVideo: (product: Product) => void;
 }
 
 export const BestSellers: React.FC<BestSellersProps> = ({
   products,
   onOpenDetails,
-  onAddToCart
+  onAddToCart,
+  onOpenVideo
 }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -89,6 +91,7 @@ export const BestSellers: React.FC<BestSellersProps> = ({
               product={product}
               onOpenDetails={onOpenDetails}
               onAddToCart={onAddToCart}
+              onOpenVideo={onOpenVideo}
             />
           </div>
         ))}

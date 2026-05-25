@@ -30,22 +30,21 @@ function App() {
   const [notification, setNotification] = React.useState<string | null>(null);
   const [simulatedCheckoutActive, setSimulatedCheckoutActive] = React.useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = React.useState(false);
-  const [videoModalUrl, setVideoModalUrl] = React.useState<string | null>(null);
+  const [selectedVideoProduct, setSelectedVideoProduct] = React.useState<Product | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = React.useState(false);
   const { products: dbProducts, loading, error } = useProducts(false);
   
   const { isOpen: isChatOpen, setIsOpen: setIsChatOpen } = useWebChat();
 
-  React.useEffect(() => {
-    const videoHandler = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      setVideoModalUrl(customEvent.detail);
-    };
-    window.addEventListener('open-video', videoHandler);
-    
-    return () => {
-      window.removeEventListener('open-video', videoHandler);
-    };
-  }, []);
+  const handleOpenVideo = (product: Product) => {
+    setSelectedVideoProduct(product);
+    setIsVideoModalOpen(true);
+  };
+
+  const handleCloseVideo = () => {
+    setIsVideoModalOpen(false);
+    setTimeout(() => setSelectedVideoProduct(null), 300);
+  };
 
   const displayProducts = React.useMemo(() => {
     if (!loading && !error && dbProducts && dbProducts.length > 0) {
@@ -176,6 +175,7 @@ function App() {
         products={displayProducts}
         onOpenDetails={setSelectedProduct}
         onAddToCart={handleAddToCart}
+        onOpenVideo={handleOpenVideo}
       />
 
       {/* Catálogo Principal de Produtos com Filtros Laterais */}
@@ -186,6 +186,7 @@ function App() {
         setSelectedCategory={setSelectedCategory}
         onOpenDetails={setSelectedProduct}
         onAddToCart={handleAddToCart}
+        onOpenVideo={handleOpenVideo}
       />
 
       {/* Sistemas em Alta */}
@@ -389,12 +390,12 @@ function App() {
       )}
 
       {/* Video Modal */}
-      {videoModalUrl && (
-        <ProductVideoModal 
-          videoUrl={videoModalUrl} 
-          onClose={() => setVideoModalUrl(null)} 
-        />
-      )}
+      <ProductVideoModal 
+        isOpen={isVideoModalOpen}
+        product={selectedVideoProduct}
+        onClose={handleCloseVideo}
+        onAddToCart={handleAddToCart}
+      />
 
       {/* Intelligent Web Chat */}
       <FloatingChatButton isOpen={isChatOpen} onClick={() => setIsChatOpen(true)} />

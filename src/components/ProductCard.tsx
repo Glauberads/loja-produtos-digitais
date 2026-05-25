@@ -11,7 +11,7 @@ interface ProductCardProps {
   product: Product;
   onOpenDetails: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
-  onOpenVideo?: (videoUrl: string) => void;
+  onOpenVideo?: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -328,27 +328,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </button>
           </div>
 
-          {/* Buttons Row 2: Ver Vídeo e Ver Mais */}
+          {/* Buttons Row 2: Ver Mais (Video Modal) */}
           <div className="flex items-center gap-2.5 mt-2.5 w-full">
-            {product.videoUrl && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onOpenVideo) {
-                    onOpenVideo(product.videoUrl!);
-                  } else {
-                    window.dispatchEvent(new CustomEvent('open-video', { detail: product.videoUrl }));
-                  }
-                }}
-                className="flex-1 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
-              >
-                Ver Vídeo
-              </button>
-            )}
             <button 
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                if (product.detailsUrl) {
+                if (onOpenVideo) {
+                  onOpenVideo(product);
+                } else if (product.detailsUrl) {
                   window.open(product.detailsUrl, '_blank');
                 } else {
                   onOpenDetails(product);

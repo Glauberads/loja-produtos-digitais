@@ -11,6 +11,7 @@ interface ProductGridProps {
   setSelectedCategory: (category: string | null) => void;
   onOpenDetails: (product: Product) => void;
   onAddToCart: (product: Product, e: React.MouseEvent) => void;
+  onOpenVideo: (product: Product) => void;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -19,7 +20,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   selectedCategory,
   setSelectedCategory,
   onOpenDetails,
-  onAddToCart
+  onAddToCart,
+  onOpenVideo
 }) => {
   // Local Filter States
   const [maxPrice, setMaxPrice] = React.useState<number>(1000);
@@ -136,6 +138,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                   product={product}
                   onOpenDetails={onOpenDetails}
                   onAddToCart={onAddToCart}
+                  onOpenVideo={onOpenVideo}
                 />
               ))}
             </div>
