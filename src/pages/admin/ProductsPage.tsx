@@ -22,10 +22,19 @@ export const ProductsPage: React.FC = () => {
   };
 
   const handleSave = async (data: ProductInput): Promise<boolean> => {
-    if (editingProduct) {
-      return updateProduct(editingProduct.id, data);
+    try {
+      if (editingProduct) {
+        const ok = await updateProduct(editingProduct.id, data);
+        if (!ok) alert('Falha ao atualizar. Verifique o console.');
+        return ok;
+      }
+      const ok = await createProduct(data);
+      if (!ok) alert('Falha ao criar. Verifique o console.');
+      return ok;
+    } catch (err: any) {
+      alert('Erro capturado: ' + err.message);
+      return false;
     }
-    return createProduct(data);
   };
 
   const handleDelete = async (product: SupabaseProduct) => {

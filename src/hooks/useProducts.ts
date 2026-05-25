@@ -76,7 +76,9 @@ export function useProducts(adminMode = false) {
       await fetchProducts();
       return true;
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar produto');
+      const msg = err instanceof Error ? err.message : 'Erro ao atualizar produto';
+      if (typeof window !== 'undefined') alert('Erro do Supabase: ' + msg);
+      setError(msg);
       return false;
     }
   };
