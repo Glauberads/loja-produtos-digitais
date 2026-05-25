@@ -73,9 +73,10 @@ export const AiSettingsPage: React.FC = () => {
         
         if (error) throw error;
       } else {
+        const { id, ...insertData } = formData;
         const { error } = await supabase
           .from('ai_settings')
-          .insert([formData]);
+          .insert([insertData]);
           
         if (error) throw error;
       }
