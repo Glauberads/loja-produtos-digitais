@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, ShoppingCart, User, Layers, Sparkles, Zap, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, Layers, Sparkles, Zap, Menu, X, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 interface HeaderProps {
   searchQuery: string;
@@ -18,9 +19,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCart
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 w-full glassmorphism-header border-b border-white/5 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full glassmorphism-header border-b border-theme-border transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -30,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Zap className="w-5 h-5 text-white animate-pulse" />
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
-            <span className="text-xl font-bold tracking-wider font-sans bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-brand-orange">
+            <span className="text-xl font-bold tracking-wider font-sans text-theme-text">
               NEXUS<span className="text-brand-orange font-extrabold">SAAS</span>
             </span>
           </div>
@@ -38,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Search Bar - Center */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <div className="relative w-full group">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-white/40 group-focus-within:text-brand-orange transition-colors">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-theme-muted group-focus-within:text-brand-orange transition-colors">
                 <Search size={18} />
               </span>
               <input
@@ -46,12 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar sistemas, automações, dashboards..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-brand-black/40 border border-white/10 text-sm text-white placeholder-white/40 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/30 transition-all duration-300 group-hover:border-white/20"
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-theme-bg/60 border border-theme-border text-sm text-theme-text placeholder:text-theme-muted focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange/30 transition-all duration-300 hover:border-theme-muted"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-theme-muted hover:text-theme-text transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -64,27 +66,36 @@ export const Header: React.FC<HeaderProps> = ({
             <nav className="flex items-center gap-6">
               <a
                 href="#vitrine"
-                className="text-sm font-medium text-white/70 hover:text-brand-orange transition-all duration-300 flex items-center gap-1.5"
+                className="text-sm font-medium text-theme-muted hover:text-brand-orange transition-all duration-300 flex items-center gap-1.5"
               >
                 <Layers size={14} className="text-brand-orange" />
                 Explorar Vitrine
               </a>
               <a
                 href="#lancamentos"
-                className="text-sm font-medium text-white/70 hover:text-brand-orange transition-all duration-300 flex items-center gap-1.5"
+                className="text-sm font-medium text-theme-muted hover:text-brand-orange transition-all duration-300 flex items-center gap-1.5"
               >
                 <Sparkles size={14} className="text-brand-orange animate-bounce" />
                 Lançamentos
               </a>
             </nav>
 
-            <div className="h-6 w-[1px] bg-white/10"></div>
+            <div className="h-6 w-[1px] bg-theme-border"></div>
 
             <div className="flex items-center gap-4">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-theme-card border border-theme-border text-theme-muted hover:text-theme-text hover:border-theme-muted transition-all duration-300"
+                title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+              >
+                {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+              </button>
+
               {/* Cart Button */}
               <button 
                 onClick={onOpenCart}
-                className="relative p-2.5 rounded-xl bg-brand-darkGray/60 border border-white/5 text-white/80 hover:text-white hover:border-brand-orange/30 hover:bg-brand-darkGray/90 transition-all duration-300"
+                className="relative p-2.5 rounded-xl bg-theme-card border border-theme-border text-theme-muted hover:text-theme-text hover:border-theme-muted transition-all duration-300"
               >
                 <ShoppingCart size={19} />
                 {cartCount > 0 && (
@@ -104,9 +115,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Mobile Buttons */}
           <div className="flex items-center gap-3 lg:hidden">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-theme-card border border-theme-border text-theme-muted"
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
             <button 
               onClick={onOpenCart}
-              className="relative p-2 rounded-xl bg-brand-darkGray/60 border border-white/5 text-white/80"
+              className="relative p-2 rounded-xl bg-theme-card border border-theme-border text-theme-muted"
             >
               <ShoppingCart size={18} />
               {cartCount > 0 && (
@@ -118,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-brand-darkGray/60 border border-white/5 text-white/80"
+              className="p-2 rounded-xl bg-theme-card border border-theme-border text-theme-muted"
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -129,10 +147,10 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-white/5 bg-brand-black/95 backdrop-blur-lg px-4 pt-4 pb-6 space-y-4 animate-fadeIn">
+        <div className="lg:hidden border-t border-theme-border bg-theme-bg/95 backdrop-blur-lg px-4 pt-4 pb-6 space-y-4 animate-fadeIn">
           {/* Mobile Search */}
           <div className="relative w-full">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-white/40">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-theme-muted">
               <Search size={18} />
             </span>
             <input
@@ -140,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar sistemas, automações..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-brand-darkGray border border-white/10 text-sm text-white focus:outline-none focus:border-brand-orange"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-theme-card border border-theme-border text-sm text-theme-text focus:outline-none focus:border-brand-orange"
             />
           </div>
 
@@ -149,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
             <a
               href="#vitrine"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-white/80 hover:text-white flex items-center gap-2"
+              className="px-4 py-3 rounded-xl hover:bg-theme-card text-sm font-medium text-theme-text hover:text-brand-orange flex items-center gap-2"
             >
               <Layers size={16} className="text-brand-orange" />
               Explorar Vitrine
@@ -157,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
             <a
               href="#lancamentos"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-white/80 hover:text-white flex items-center gap-2"
+              className="px-4 py-3 rounded-xl hover:bg-theme-card text-sm font-medium text-theme-text hover:text-brand-orange flex items-center gap-2"
             >
               <Sparkles size={16} className="text-brand-orange" />
               Lançamentos

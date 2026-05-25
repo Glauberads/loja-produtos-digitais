@@ -61,7 +61,7 @@ export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, 
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="relative w-full max-w-md bg-brand-darkGray/95 border border-brand-orange/30 rounded-3xl shadow-[0_0_50px_rgba(249,115,22,0.15)] overflow-hidden z-10 flex flex-col"
+        className="relative w-full max-w-md bg-theme-card border border-brand-orange/30 rounded-3xl shadow-[0_0_50px_rgba(249,115,22,0.15)] overflow-hidden z-10 flex flex-col"
       >
         {/* Confetti / Glow Effects */}
         {result && (
@@ -73,7 +73,7 @@ export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, 
         <button 
           onClick={onClose}
           disabled={isSpinning}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-theme-border/50 border border-theme-border text-theme-muted hover:text-theme-text hover:bg-theme-border transition-all disabled:opacity-30"
         >
           <X size={18} />
         </button>
@@ -92,10 +92,10 @@ export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, 
                     <Gift size={12} />
                     Roleta Premium
                   </div>
-                  <h2 className="text-2xl font-black text-white mb-2 leading-tight">
+                  <h2 className="text-2xl font-black text-theme-text mb-2 leading-tight">
                     Gire a roleta e descubra<br/>seu desconto!
                   </h2>
-                  <p className="text-sm text-white/50">
+                  <p className="text-sm text-theme-muted">
                     Tente a sorte e desbloqueie uma oferta exclusiva.
                   </p>
                 </div>
@@ -130,30 +130,30 @@ export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, 
                   <Gift size={40} className="relative z-10" />
                 </div>
                 
-                <h2 className="text-3xl font-black text-white mb-2">PARABÉNS!</h2>
-                <p className="text-lg text-emerald-400 font-bold mb-6">Você ganhou {result.discount}% OFF</p>
+                <h2 className="text-3xl font-black text-theme-text mb-2">PARABÉNS!</h2>
+                <p className="text-lg text-emerald-500 font-bold mb-6">Você ganhou {result.discount}% OFF</p>
 
-                <div className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 mb-6">
+                <div className="w-full bg-theme-bg/60 border border-theme-border rounded-2xl p-5 mb-6">
                   <div className="flex justify-between items-center mb-3 text-sm">
-                    <span className="text-white/40 font-medium">De:</span>
-                    <span className="text-white/40 line-through">R$ {result.originalPrice.toFixed(2)}</span>
+                    <span className="text-theme-muted font-medium">De:</span>
+                    <span className="text-theme-muted line-through">R$ {result.originalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-white font-bold">Por apenas:</span>
-                    <span className="text-2xl font-black text-emerald-400">R$ {result.discountedPrice.toFixed(2)}</span>
+                    <span className="text-theme-text font-bold">Por apenas:</span>
+                    <span className="text-2xl font-black text-emerald-500">R$ {result.discountedPrice.toFixed(2)}</span>
                   </div>
 
-                  <div className="w-full h-px bg-white/5 mb-4" />
+                  <div className="w-full h-px bg-theme-border mb-4" />
 
                   <div className="flex flex-col gap-2">
-                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider text-left">Seu cupom:</span>
+                    <span className="text-[10px] text-theme-muted font-bold uppercase tracking-wider text-left">Seu cupom:</span>
                     <div className="flex gap-2">
-                      <div className="flex-1 bg-[#1A1F2E] border border-brand-orange/30 rounded-xl px-4 py-3 text-brand-orange font-mono font-bold text-center tracking-widest text-lg">
+                      <div className="flex-1 bg-theme-bg border border-brand-orange/30 rounded-xl px-4 py-3 text-brand-orange font-mono font-bold text-center tracking-widest text-lg">
                         {result.coupon}
                       </div>
                       <button 
                         onClick={copyCoupon}
-                        className="w-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                        className="w-14 rounded-xl bg-theme-border/50 border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:bg-theme-border transition-colors"
                         title="Copiar cupom"
                       >
                         {copied ? <CheckCircle2 size={20} className="text-emerald-500" /> : <Copy size={20} />}
@@ -168,7 +168,7 @@ export const DiscountWheelModal: React.FC<DiscountWheelModalProps> = ({ isOpen, 
                 >
                   APLICAR DESCONTO
                 </button>
-                <p className="text-[11px] text-white/40 mt-4">
+                <p className="text-[11px] text-theme-muted mt-4">
                   Use este cupom no checkout. O desconto expira em 15 minutos!
                 </p>
               </motion.div>

@@ -20,6 +20,7 @@ import { DiscountWheelProvider } from './context/DiscountWheelContext';
 import { FloatingChatButton } from './components/chat/FloatingChatButton';
 import { WebChatWindow } from './components/chat/WebChatWindow';
 import { useWebChat } from './hooks/useWebChat';
+import { useTheme } from './hooks/useTheme';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -35,6 +36,7 @@ function App() {
   const { products: dbProducts, loading, error } = useProducts(false);
   
   const { isOpen: isChatOpen, setIsOpen: setIsChatOpen } = useWebChat();
+  useTheme(); // Inicializa e aplica a persistência de tema
 
   const handleOpenVideo = (product: Product) => {
     setSelectedVideoProduct(product);
@@ -130,7 +132,7 @@ function App() {
 
   return (
     <DiscountWheelProvider>
-      <div className="relative min-h-screen bg-brand-black overflow-x-hidden">
+      <div className="relative min-h-screen bg-theme-bg overflow-x-hidden transition-colors duration-300">
         
         {/* Background Neon Blur Nodes */}
       <div className="absolute top-[8%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none"></div>
@@ -139,7 +141,7 @@ function App() {
 
       {/* Alert Notification Toast */}
       {notification && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-4 rounded-xl bg-brand-darkGray border border-brand-orange/45 text-white text-xs font-semibold shadow-neon-orange-lg animate-slideIn">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-4 rounded-xl bg-theme-card border border-brand-orange/45 text-theme-text text-xs font-semibold shadow-neon-orange-lg animate-slideIn">
           <Zap size={14} className="text-brand-orange animate-pulse" />
           <span>{notification}</span>
         </div>
@@ -224,10 +226,10 @@ function App() {
           ></div>
           
           <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-brand-darkGray/95 border-l border-white/10 text-white flex flex-col justify-between shadow-2xl relative animate-slideLeft">
+            <div className="w-screen max-w-md bg-theme-bg/95 backdrop-blur-xl border-l border-theme-border text-theme-text flex flex-col justify-between shadow-2xl relative animate-slideLeft">
               
               {/* Drawer Header */}
-              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <div className="p-6 border-b border-theme-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="text-brand-orange" size={20} />
                   <h3 className="font-bold text-base uppercase tracking-wider">Seu Carrinho</h3>
@@ -238,7 +240,7 @@ function App() {
                     setSimulatedCheckoutActive(false);
                     setCheckoutSuccess(false);
                   }}
-                  className="p-2 rounded-lg bg-white/5 text-white/70 hover:text-white border border-transparent hover:border-white/10"
+                  className="p-2 rounded-lg bg-theme-border/50 text-theme-muted hover:text-theme-text border border-transparent hover:border-theme-border"
                 >
                   <X size={16} />
                 </button>
@@ -251,22 +253,22 @@ function App() {
                     cart.map((item) => (
                       <div 
                         key={item.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-brand-black/40 border border-white/5 hover:border-white/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-xl bg-theme-card border border-theme-border hover:border-theme-muted transition-colors shadow-sm"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shrink-0`}>
                             <TechIcon name={item.iconName} className="text-white" size={18} />
                           </div>
                           <div className="min-w-0">
-                            <h4 className="text-xs font-bold text-white truncate">{item.name}</h4>
-                            <p className="text-[10px] text-white/40">{item.category}</p>
+                            <h4 className="text-xs font-bold text-theme-text truncate">{item.name}</h4>
+                            <p className="text-[10px] text-theme-muted">{item.category}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-xs font-bold text-white/90 font-mono">R$ {item.price}</span>
+                          <span className="text-xs font-bold text-theme-text font-mono">R$ {item.price}</span>
                           <button
                             onClick={() => handleRemoveFromCart(item.id)}
-                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                             title="Remover"
                           >
                             <Trash2 size={12} />
@@ -275,7 +277,7 @@ function App() {
                       </div>
                     ))
                   ) : (
-                    <div className="flex flex-col items-center justify-center text-center py-20 text-white/40 space-y-3">
+                    <div className="flex flex-col items-center justify-center text-center py-20 text-theme-muted space-y-3">
                       <ShoppingCart size={40} className="stroke-[1.5]" />
                       <p className="text-xs font-semibold">Seu carrinho está vazio.</p>
                       <button 
@@ -291,13 +293,13 @@ function App() {
                   <div className="space-y-6">
                     {!checkoutSuccess ? (
                       <div className="space-y-5 text-center flex flex-col items-center py-4">
-                        <p className="text-xs text-white/70">
+                        <p className="text-xs text-theme-muted">
                           Você está prestes a simular o checkout dos seguintes itens ({cart.length}):
                         </p>
                         
-                        <div className="w-full max-h-[140px] overflow-y-auto space-y-1.5 pr-1 border border-white/5 rounded-xl p-2 bg-brand-black/25">
+                        <div className="w-full max-h-[140px] overflow-y-auto space-y-1.5 pr-1 border border-theme-border rounded-xl p-2 bg-theme-bg">
                           {cart.map(item => (
-                            <div key={item.id} className="flex justify-between text-[11px] text-white/80 py-1 border-b border-white/5 last:border-0">
+                            <div key={item.id} className="flex justify-between text-[11px] text-theme-text py-1 border-b border-theme-border last:border-0">
                               <span className="truncate pr-2">{item.name}</span>
                               <span className="font-mono">R$ {item.price}</span>
                             </div>
@@ -322,7 +324,7 @@ function App() {
                           </svg>
                         </div>
                         
-                        <p className="text-[10px] text-white/40">
+                        <p className="text-[10px] text-theme-muted">
                           Pague o Pix acima para liberar o download simulado de forma instantânea.
                         </p>
 
@@ -334,7 +336,7 @@ function App() {
                         </button>
                         <button
                           onClick={() => setSimulatedCheckoutActive(false)}
-                          className="w-full text-xs text-white/40 hover:text-white"
+                          className="w-full text-xs text-theme-muted hover:text-theme-text"
                         >
                           Cancelar e Voltar ao Carrinho
                         </button>
@@ -346,10 +348,10 @@ function App() {
                           <ShieldCheck size={26} />
                         </div>
                         <div>
-                          <h4 className="text-base font-bold text-white">Transação Aprovada!</h4>
-                          <p className="text-[11px] text-white/40 mt-1">Seu download simulado está liberado.</p>
+                          <h4 className="text-base font-bold text-theme-text">Transação Aprovada!</h4>
+                          <p className="text-[11px] text-theme-muted mt-1">Seu download simulado está liberado.</p>
                         </div>
-                        <div className="p-4 rounded-xl bg-brand-black/45 border border-white/5 text-left w-full text-[11px] text-white/60 leading-relaxed">
+                        <div className="p-4 rounded-xl bg-theme-card border border-theme-border text-left w-full text-[11px] text-theme-muted leading-relaxed">
                           Os links de download dos repositórios e instruções de deploy para cada sistema foram liberados em seu painel cliente.
                         </div>
                         <button
@@ -358,7 +360,7 @@ function App() {
                             setSimulatedCheckoutActive(false);
                             setCheckoutSuccess(false);
                           }}
-                          className="w-full py-3 rounded-xl bg-brand-black border border-white/10 hover:border-brand-orange/30 text-xs font-bold transition-all duration-300"
+                          className="w-full py-3 rounded-xl bg-theme-bg border border-theme-border hover:border-brand-orange/30 text-xs font-bold transition-all duration-300"
                         >
                           Fechar e continuar navegando
                         </button>
@@ -370,9 +372,9 @@ function App() {
 
               {/* Drawer Footer (Only if not in checkout step) */}
               {!simulatedCheckoutActive && cart.length > 0 && (
-                <div className="p-6 border-t border-white/5 space-y-4 bg-brand-black/40">
+                <div className="p-6 border-t border-theme-border space-y-4 bg-theme-bg">
                   <div className="flex items-center justify-between text-sm font-bold">
-                    <span className="text-white/60">Subtotal:</span>
+                    <span className="text-theme-muted">Subtotal:</span>
                     <span className="font-mono text-brand-orange text-lg">R$ {cartTotal}</span>
                   </div>
                   <button 

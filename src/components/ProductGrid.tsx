@@ -77,11 +77,11 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <Grid3X3 className="text-brand-orange" size={20} />
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans text-theme-text">
               Vitrine de <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-orange to-brand-neonOrange font-black">Sistemas</span>
             </h2>
           </div>
-          <p className="text-xs text-white/40 mt-1 font-mono">
+          <p className="text-xs text-theme-muted mt-1 font-mono">
             Mostrando {filteredProducts.length} de {products.length} soluções digitais premium prontas.
           </p>
         </div>
@@ -89,7 +89,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         {/* Mobile Filter Toggle Button */}
         <button
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="lg:hidden flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-darkGray border border-white/10 text-xs font-semibold text-white/95"
+          className="lg:hidden flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-theme-card border border-theme-border text-xs font-semibold text-theme-text"
         >
           <SlidersHorizontal size={14} className="text-brand-orange" />
           Filtros & Ordenação
@@ -144,12 +144,12 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             </div>
           ) : (
             // No Products State
-            <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-2xl bg-brand-darkGray/20 border border-white/5">
-              <div className="p-4 rounded-full bg-brand-darkGray/60 border border-white/5 text-white/40 mb-4 animate-bounce">
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-2xl bg-theme-card/30 border border-theme-border">
+              <div className="p-4 rounded-full bg-theme-card border border-theme-border text-theme-muted mb-4 animate-bounce">
                 <SearchX size={32} />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Nenhum sistema encontrado</h3>
-              <p className="text-xs text-white/50 max-w-sm leading-relaxed">
+              <h3 className="text-lg font-bold text-theme-text mb-2">Nenhum sistema encontrado</h3>
+              <p className="text-xs text-theme-muted max-w-sm leading-relaxed">
                 Tente ajustar os termos de busca, selecionar outra categoria ou elevar a faixa de preço máxima.
               </p>
             </div>

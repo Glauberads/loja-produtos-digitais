@@ -83,11 +83,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative rounded-[24px] bg-white border border-gray-100 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_30px_-6px_rgba(0,0,0,0.12)] transition-all duration-300 flex flex-col justify-between h-full select-none"
+      className="group relative rounded-[24px] bg-theme-card border border-theme-border overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full select-none"
     >
       
       {/* 1. TOP PORTION (Gradient + Mockup Header) */}
-      <div className="relative w-full h-[250px] bg-gradient-to-tr from-[#DCE8FC] via-[#E8F0FE] to-[#F1EEFC] border-b border-gray-100 flex flex-col justify-between overflow-hidden">
+      <div className={`relative w-full h-[250px] bg-gradient-to-br ${product.gradient} border-b border-theme-border flex flex-col justify-between overflow-hidden`}>
         
         {/* CLICKABLE OVERLAY FOR PRODUCT DETAILS */}
         <div 
@@ -130,7 +130,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Headline dynamic text */}
         <div className="text-center px-4 pt-11 z-10 pointer-events-none">
-          <h4 className="text-[11px] sm:text-xs font-black text-gray-800 leading-snug">
+          <h4 className="text-[11px] sm:text-xs font-black text-theme-text leading-snug">
             {headline.split(' ').map((word, i) => {
               const highlightWords = ['WhatsApp', 'Inteligência', 'Artificial', product.name];
               const cleanedWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
@@ -155,7 +155,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* B. Simulated Dashboard Screen (Laptop mockup) */}
-          <div className="flex-1 max-w-[130px] aspect-[4/3] rounded-md bg-[#1F2937] border border-gray-300 p-[3px] flex flex-col justify-between shadow-[0_6px_15px_rgba(0,0,0,0.15)] relative transform translate-y-1">
+          <div className="flex-1 max-w-[130px] aspect-[4/3] rounded-md bg-[#1F2937] border border-gray-300 p-[3px] flex flex-col justify-between shadow-lg relative transform translate-y-1">
             <div className="flex items-center gap-0.5 border-b border-white/5 pb-0.5">
               <span className="w-1 h-1 rounded-full bg-red-400"></span>
               <span className="w-1 h-1 rounded-full bg-yellow-400"></span>
@@ -215,10 +215,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Features Checklist */}
-        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-left text-[7px] text-gray-600 font-bold px-5 pb-9 z-10 shrink-0">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-left text-[7px] text-white/90 font-bold px-5 pb-9 z-10 shrink-0">
           {product.features.slice(0, 4).map((f, i) => (
             <div key={i} className="flex items-center gap-0.5 truncate max-w-[120px]">
-              <span className="text-blue-600 font-black">✓</span>
+              <span className="text-brand-orange font-black">✓</span>
               <span className="truncate">{f}</span>
             </div>
           ))}
@@ -238,12 +238,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div>
           <h3 
             onClick={() => onOpenDetails(product)}
-            className="text-base font-extrabold text-[#111827] tracking-tight hover:text-blue-600 transition-colors cursor-pointer truncate"
+            className="text-base font-extrabold text-theme-text tracking-tight hover:text-brand-orange transition-colors cursor-pointer truncate"
           >
             {product.name}
           </h3>
 
-          <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-theme-muted mt-1 line-clamp-2 leading-relaxed">
             🚀 {product.name} — {product.shortDescription}
           </p>
         </div>
@@ -252,16 +252,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div>
           {/* Card Price */}
           <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-1.5 text-xs text-[#374151] font-bold">
-              <CreditCard size={13} className="text-gray-500" />
+            <div className="flex items-center gap-1.5 text-xs text-theme-text font-bold">
+              <CreditCard size={13} className="text-theme-muted" />
               {activeDiscount ? (
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-400 line-through">R$ {product.price.toFixed(2)}</span>
-                  <span className="text-sm text-emerald-600 font-black">R$ {activeDiscount.discountedPrice.toFixed(2)}</span>
+                  <span className="text-[10px] text-theme-muted line-through">R$ {product.price.toFixed(2)}</span>
+                  <span className="text-sm text-emerald-500 font-black">R$ {activeDiscount.discountedPrice.toFixed(2)}</span>
                 </div>
               ) : (
                 <span>
-                  R$ {product.price.toFixed(2)} <span className="text-gray-400 font-normal">NO CARTÃO</span>
+                  R$ {product.price.toFixed(2)} <span className="text-theme-muted font-normal">NO CARTÃO</span>
                 </span>
               )}
             </div>
@@ -306,7 +306,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center gap-2.5 mt-3 w-full">
             <button 
               onClick={(e) => onAddToCart(product, e)}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-black bg-white hover:bg-gray-50 flex items-center justify-center gap-1.5 transition-all duration-200"
+              className="flex-1 py-2.5 rounded-xl border border-theme-border text-theme-text text-xs font-black bg-theme-bg hover:bg-theme-border/50 flex items-center justify-center gap-1.5 transition-all duration-200"
             >
               <ShoppingCart size={13} />
               Adicionar
@@ -321,7 +321,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   onOpenDetails(product);
                 }
               }}
-              className="flex-1 py-2.5 rounded-xl bg-[#047857] hover:bg-[#065f46] text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm"
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange hover:shadow-neon-orange text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm"
             >
               <Zap size={13} />
               Comprar
@@ -342,7 +342,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   onOpenDetails(product);
                 }
               }}
-              className="flex-1 py-2.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] hover:bg-[#DBEAFE] text-[#2563EB] text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
+              className="flex-1 py-2.5 rounded-xl bg-theme-border/20 border border-theme-border hover:bg-theme-border/40 text-theme-text text-xs font-black flex items-center justify-center gap-1.5 transition-all duration-200"
             >
               <Globe size={13} />
               Ver Mais

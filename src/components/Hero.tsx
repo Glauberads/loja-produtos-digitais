@@ -27,7 +27,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white flex items-center justify-center gap-3 select-none"
+            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-theme-text flex items-center justify-center gap-3 select-none"
           >
             🔥 Lançamento 🔥
           </motion.h1>
@@ -37,7 +37,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white/95 leading-snug font-sans"
+            className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-theme-text leading-snug font-sans"
           >
             Tenha sua própria plataforma SaaS de WhatsApp
           </motion.h2>
@@ -60,7 +60,7 @@ export const Hero: React.FC = () => {
           </button>
           <button
             onClick={() => scrollToSection('lancamentos')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-brand-darkGray/80 border border-white/10 hover:border-brand-orange/30 hover:bg-brand-darkGray text-base font-bold text-white/90 hover:text-white transition-all duration-300"
+            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-theme-card/80 border border-theme-border hover:border-brand-orange/30 hover:bg-theme-card text-base font-bold text-theme-muted hover:text-theme-text transition-all duration-300"
           >
             Ver Lançamentos
           </button>
@@ -75,32 +75,32 @@ export const Hero: React.FC = () => {
           onClick={() => scrollToSection('vitrine')}
         >
           {/* Simulated Window Header */}
-          <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-3">
+          <div className="flex items-center justify-between border-b border-theme-border pb-3 mb-3">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
               <span className="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
             </div>
-            <div className="text-[10px] text-white/30 font-mono tracking-widest uppercase flex items-center gap-1 bg-brand-black/40 px-2.5 py-0.5 rounded">
+            <div className="text-[10px] text-theme-muted font-mono tracking-widest uppercase flex items-center gap-1 bg-theme-bg/60 px-2.5 py-0.5 rounded">
               <Terminal size={10} className="text-brand-orange" />
               demo_whatsapp_saas.mp4
             </div>
           </div>
 
           {/* Video Mockup Interface */}
-          <div className="relative w-full h-[calc(100%-36px)] rounded-2xl overflow-hidden bg-brand-black/60 flex items-center justify-center">
+          <div className="relative w-full h-[calc(100%-36px)] rounded-2xl overflow-hidden bg-theme-bg/80 flex items-center justify-center">
             
             {/* Tech grid layout design background representing SaaS Dashboard */}
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/5 via-brand-black/20 to-brand-neonOrange/5 opacity-55 tech-grid-bg"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/5 via-theme-bg/20 to-brand-neonOrange/5 opacity-55 tech-grid-bg"></div>
             
             {/* Simulated UI components */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-              <div className="flex items-center gap-2 bg-brand-black/85 border border-white/10 px-3 py-1.5 rounded-lg">
+              <div className="flex items-center gap-2 bg-theme-card/85 border border-theme-border px-3 py-1.5 rounded-lg">
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[9px] font-mono text-white/80 tracking-wider">Servidor: WhatsApp API Online</span>
+                <span className="text-[9px] font-mono text-theme-text tracking-wider">Servidor: WhatsApp API Online</span>
               </div>
               <div className="flex gap-2">
-                <span className="h-5 w-16 rounded bg-white/5 border border-white/10 text-[8px] font-mono flex items-center justify-center text-white/50">Multi-tenant</span>
+                <span className="h-5 w-16 rounded bg-theme-border/20 border border-theme-border text-[8px] font-mono flex items-center justify-center text-theme-muted">Multi-tenant</span>
                 <span className="h-5 w-16 rounded bg-brand-orange/10 border border-brand-orange/30 text-[8px] font-mono flex items-center justify-center text-brand-orange font-bold">100% White Label</span>
               </div>
             </div>
@@ -111,13 +111,13 @@ export const Hero: React.FC = () => {
                 {/* Simulated Youtube play icon */}
                 <Play size={28} fill="currentColor" className="ml-1 text-white" />
               </div>
-              <span className="text-[10px] font-mono tracking-widest uppercase bg-brand-black/85 border border-white/10 text-white/70 px-3.5 py-1.5 rounded-full group-hover:text-brand-orange transition-colors">
+              <span className="text-[10px] font-mono tracking-widest uppercase bg-theme-card border border-theme-border text-theme-muted px-3.5 py-1.5 rounded-full group-hover:text-brand-orange transition-colors">
                 Clique para Ver os Sistemas na Vitrine
               </span>
             </div>
 
             {/* Footer indicators inside mockup */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white/40 font-mono text-[8px] pointer-events-none">
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-theme-muted font-mono text-[8px] pointer-events-none">
               <span>Stack: Node.js, React, Tailwind, PostgreSQL</span>
               <span>1080p Full HD Demo</span>
             </div>
@@ -131,7 +131,7 @@ export const Hero: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-white/50 text-xs font-mono pt-4 select-none"
+          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-theme-muted text-xs font-mono pt-4 select-none"
         >
           <span className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-orange animate-ping"></span>

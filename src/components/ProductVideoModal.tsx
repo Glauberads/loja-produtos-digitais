@@ -95,7 +95,7 @@ export const ProductVideoModal: React.FC<ProductVideoModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-5xl max-h-[90vh] bg-[#0B1120] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-5xl max-h-[90vh] bg-theme-card border border-theme-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Glow Accent */}
             <div
@@ -106,14 +106,14 @@ export const ProductVideoModal: React.FC<ProductVideoModalProps> = ({
             />
 
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/10 relative z-10">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-theme-border relative z-10">
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">{product.name}</h2>
-                <p className="text-xs sm:text-sm text-white/50 mt-1 truncate max-w-xl">{product.shortDescription}</p>
+                <h2 className="text-lg sm:text-xl font-bold text-theme-text tracking-tight">{product.name}</h2>
+                <p className="text-xs sm:text-sm text-theme-muted mt-1 truncate max-w-xl">{product.shortDescription}</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors ml-4 shrink-0"
+                className="p-2 rounded-lg bg-theme-border/50 hover:bg-theme-border text-theme-muted hover:text-theme-text transition-colors ml-4 shrink-0"
               >
                 <X size={20} />
               </button>
@@ -139,11 +139,11 @@ export const ProductVideoModal: React.FC<ProductVideoModalProps> = ({
                 )
               ) : (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <AlertCircle className="text-white/30" size={32} />
+                  <div className="w-16 h-16 rounded-full bg-theme-border/50 flex items-center justify-center mb-4">
+                    <AlertCircle className="text-theme-muted" size={32} />
                   </div>
-                  <h3 className="text-white/80 font-medium mb-2">Vídeo demonstrativo indisponível</h3>
-                  <p className="text-white/40 text-sm max-w-md">
+                  <h3 className="text-theme-text font-medium mb-2">Vídeo demonstrativo indisponível</h3>
+                  <p className="text-theme-muted text-sm max-w-md">
                     No momento não temos um vídeo de demonstração para este produto. Por favor, leia os detalhes do produto abaixo ou entre em contato com nosso atendimento para mais informações.
                   </p>
                 </div>
@@ -151,17 +151,17 @@ export const ProductVideoModal: React.FC<ProductVideoModalProps> = ({
             </div>
 
             {/* Footer / Actions */}
-            <div className="p-4 sm:p-5 border-t border-white/10 bg-[#111827] relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 border-t border-theme-border bg-theme-bg relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex flex-col items-center sm:items-start w-full sm:w-auto">
-                <span className="text-xs text-white/40 uppercase tracking-wider font-bold">Investimento</span>
+                <span className="text-xs text-theme-muted uppercase tracking-wider font-bold">Investimento</span>
                 <div className="flex items-center gap-2">
                   {activeDiscount ? (
                     <>
-                      <span className="text-sm text-white/30 line-through">R$ {product.price.toFixed(2)}</span>
+                      <span className="text-sm text-theme-muted line-through">R$ {product.price.toFixed(2)}</span>
                       <span className="text-xl sm:text-2xl text-[#10B981] font-black">R$ {price.toFixed(2)}</span>
                     </>
                   ) : (
-                    <span className="text-xl sm:text-2xl text-white font-black">R$ {price.toFixed(2)}</span>
+                    <span className="text-xl sm:text-2xl text-theme-text font-black">R$ {price.toFixed(2)}</span>
                   )}
                 </div>
               </div>
@@ -172,7 +172,7 @@ export const ProductVideoModal: React.FC<ProductVideoModalProps> = ({
                     onClose();
                     onAddToCart(product, e);
                   }}
-                  className="flex-1 sm:flex-none py-3 px-6 rounded-xl border border-white/20 text-white text-sm font-black bg-white/5 hover:bg-white/10 flex items-center justify-center gap-2 transition-all duration-200"
+                  className="flex-1 sm:flex-none py-3 px-6 rounded-xl border border-theme-border text-theme-text text-sm font-black bg-theme-card hover:bg-theme-border/50 flex items-center justify-center gap-2 transition-all duration-200"
                 >
                   <ShoppingCart size={16} />
                   Adicionar

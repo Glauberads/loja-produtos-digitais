@@ -14,7 +14,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, agentName = '
   if (isSystem) {
     return (
       <div className="flex justify-center my-2">
-        <span className="text-[10px] text-white/40 bg-white/5 px-3 py-1 rounded-full">
+        <span className="text-[10px] text-theme-muted bg-theme-border/50 px-3 py-1 rounded-full">
           {message.content}
         </span>
       </div>
@@ -34,11 +34,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, agentName = '
 
         {/* Bubble */}
         <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-          {!isUser && <span className="text-[10px] text-white/50 ml-1 mb-1">{agentName}</span>}
+          {!isUser && <span className="text-[10px] text-theme-muted ml-1 mb-1">{agentName}</span>}
           <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
             isUser 
               ? 'bg-brand-darkBlue text-white rounded-br-sm' 
-              : 'bg-brand-darkGray/80 border border-white/5 text-white/90 rounded-bl-sm shadow-lg'
+              : 'bg-theme-card border border-theme-border text-theme-text rounded-bl-sm shadow-lg'
           }`}>
             {message.content}
           </div>

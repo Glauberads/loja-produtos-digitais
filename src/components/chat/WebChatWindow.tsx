@@ -40,17 +40,17 @@ export const WebChatWindow: React.FC<WebChatWindowProps> = ({ isOpen, onClose })
   const showLeadCapture = isAiDisabled || (mode === 'hybrid' && messages.length > 4 && !leadCaptured);
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] h-[550px] max-h-[calc(100vh-8rem)] flex flex-col bg-brand-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
+    <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] h-[550px] max-h-[calc(100vh-8rem)] flex flex-col bg-theme-bg/95 backdrop-blur-xl border border-theme-border rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
       
       {/* Header */}
-      <div className="px-4 py-4 bg-gradient-to-r from-brand-darkGray to-brand-black border-b border-white/5 flex items-center justify-between shadow-md">
+      <div className="px-4 py-4 bg-theme-card border-b border-theme-border flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center relative">
             <Bot size={20} className="text-brand-orange" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-brand-black rounded-full"></div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-theme-bg rounded-full"></div>
           </div>
           <div>
-            <h3 className="text-white font-bold text-sm">{config?.agent_name || 'NexusBot'}</h3>
+            <h3 className="text-theme-text font-bold text-sm">{config?.agent_name || 'NexusBot'}</h3>
             <p className="text-brand-orange text-[11px] font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse"></span>
               Online agora
@@ -59,7 +59,7 @@ export const WebChatWindow: React.FC<WebChatWindowProps> = ({ isOpen, onClose })
         </div>
         <button 
           onClick={onClose}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 text-theme-muted hover:text-theme-text hover:bg-theme-border/50 rounded-lg transition-colors"
         >
           <X size={18} />
         </button>
@@ -71,7 +71,7 @@ export const WebChatWindow: React.FC<WebChatWindowProps> = ({ isOpen, onClose })
         {/* Welcome Message for AI or Hybrid */}
         {!isAiDisabled && messages.length === 0 && (
           <div className="flex justify-center mb-6 mt-4">
-            <div className="bg-brand-darkGray/80 border border-white/5 text-white/90 text-sm px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] shadow-lg">
+            <div className="bg-theme-card/80 border border-theme-border text-theme-text text-sm px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] shadow-lg">
               {config?.welcome_message || 'Olá! Como posso te ajudar hoje?'}
             </div>
           </div>
@@ -109,8 +109,8 @@ export const WebChatWindow: React.FC<WebChatWindowProps> = ({ isOpen, onClose })
       )}
       
       {/* Footer Branding */}
-      <div className="py-2 text-center bg-brand-darkGray/90 border-t border-white/5">
-        <span className="text-[10px] text-white/30 flex items-center justify-center gap-1">
+      <div className="py-2 text-center bg-theme-card/90 border-t border-theme-border">
+        <span className="text-[10px] text-theme-muted flex items-center justify-center gap-1">
           Powered by <Bot size={10} /> NexusSaaS AI
         </span>
       </div>

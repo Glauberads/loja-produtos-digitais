@@ -8,10 +8,10 @@ export const TypingIndicator: React.FC = () => {
         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-brand-orange shadow-neon-orange-sm">
           <Bot size={14} className="text-white" />
         </div>
-        <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-brand-darkGray/80 border border-white/5 flex items-center gap-1.5 h-[40px]">
-          <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+        <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-theme-card border border-theme-border flex items-center gap-1.5 h-[40px]">
+          <div className="w-1.5 h-1.5 rounded-full bg-theme-muted animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-1.5 h-1.5 rounded-full bg-theme-muted animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-1.5 h-1.5 rounded-full bg-theme-muted animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>
