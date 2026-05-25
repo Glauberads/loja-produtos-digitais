@@ -81,9 +81,9 @@ export const AiSettingsPage: React.FC = () => {
         if (error) throw error;
       }
       alert('Configurações salvas com sucesso!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving settings', err);
-      alert('Erro ao salvar as configurações.');
+      alert('Erro ao salvar as configurações: ' + (err.message || JSON.stringify(err)));
     } finally {
       setLoading(false);
     }
