@@ -113,9 +113,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               e.stopPropagation();
               toggleFavorite(product);
             }}
-            className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-black/40 transition-colors"
+            className="w-8 h-8 rounded-full bg-white/50 dark:bg-black/20 backdrop-blur-md border border-gray-300 dark:border-white/10 flex items-center justify-center hover:bg-white/80 dark:hover:bg-black/40 transition-colors"
           >
-            <Heart size={15} className={`${isFav ? 'text-brand-orange fill-brand-orange' : 'text-white'}`} />
+            <Heart size={15} className={`${isFav ? 'text-brand-orange fill-brand-orange' : 'text-gray-700 dark:text-white'}`} />
           </button>
         </div>
         <div className="absolute top-3 right-3 z-20">
@@ -229,7 +229,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Features Checklist */}
-        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-left text-[7px] text-white/90 font-bold px-5 pb-9 z-10 shrink-0">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-left text-[7px] text-gray-800 dark:text-white/90 font-bold px-5 pb-9 z-10 shrink-0">
           {product.features.slice(0, 4).map((f, i) => (
             <div key={i} className="flex items-center gap-0.5 truncate max-w-[120px]">
               <span className="text-brand-orange font-black">✓</span>

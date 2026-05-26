@@ -24,7 +24,7 @@ export const FavoritesDrawer: React.FC<FavoritesDrawerProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div 
         onClick={onClose}
-        className="absolute inset-0 bg-brand-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 dark:bg-brand-black/80 backdrop-blur-sm"
       ></div>
       
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">

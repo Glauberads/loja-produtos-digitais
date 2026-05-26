@@ -300,7 +300,7 @@ function App() {
               setSimulatedCheckoutActive(false);
               setCheckoutSuccess(false);
             }}
-            className="absolute inset-0 bg-brand-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 dark:bg-brand-black/80 backdrop-blur-sm"
           ></div>
           
           <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
