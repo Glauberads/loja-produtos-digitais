@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ShoppingCart, User, Layers, Sparkles, Zap, Menu, X, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingCart, User, Layers, Sparkles, Zap, Menu, X, Sun, Moon, Heart } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
 interface HeaderProps {
@@ -9,6 +9,8 @@ interface HeaderProps {
   setSelectedCategory: (category: string | null) => void;
   cartCount: number;
   onOpenCart: () => void;
+  favoritesCount?: number;
+  onOpenFavorites?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +18,9 @@ export const Header: React.FC<HeaderProps> = ({
   setSearchQuery,
   setSelectedCategory,
   cartCount,
-  onOpenCart
+  onOpenCart,
+  favoritesCount = 0,
+  onOpenFavorites
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -92,6 +96,19 @@ export const Header: React.FC<HeaderProps> = ({
                 {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
               </button>
 
+              {/* Favorites Button */}
+              <button 
+                onClick={onOpenFavorites}
+                className="relative p-2.5 rounded-xl bg-theme-card border border-theme-border text-theme-muted hover:text-theme-text hover:border-theme-muted transition-all duration-300"
+              >
+                <Heart size={19} className={favoritesCount > 0 ? "text-brand-orange fill-brand-orange" : ""} />
+                {favoritesCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-orange text-[10px] font-bold text-white shadow-neon-orange animate-scaleIn">
+                    {favoritesCount}
+                  </span>
+                )}
+              </button>
+
               {/* Cart Button */}
               <button 
                 onClick={onOpenCart}
@@ -120,6 +137,18 @@ export const Header: React.FC<HeaderProps> = ({
               className="p-2 rounded-xl bg-theme-card border border-theme-border text-theme-muted"
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
+            <button 
+              onClick={onOpenFavorites}
+              className="relative p-2 rounded-xl bg-theme-card border border-theme-border text-theme-muted"
+            >
+              <Heart size={18} className={favoritesCount > 0 ? "text-brand-orange fill-brand-orange" : ""} />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-brand-orange text-[9px] font-bold text-white shadow-neon-orange">
+                  {favoritesCount}
+                </span>
+              )}
             </button>
 
             <button 

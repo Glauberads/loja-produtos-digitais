@@ -14,6 +14,7 @@ import {
   LogOut,
   Zap,
   ShieldCheck,
+  Ticket,
   X,
   Bot,
   MessageSquare
@@ -33,6 +34,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
     { label: 'Leads', icon: MessageSquare, path: '/admin/leads' },
     { label: 'Produtos', icon: Package, path: '/admin/products' },
+    { label: 'Cupons', icon: Ticket, path: '/admin/coupons' },
     { label: 'Marketing', icon: Megaphone, path: '/admin/marketing' },
     { label: 'Integrações', icon: Network, path: '/admin/integrations' },
   ];

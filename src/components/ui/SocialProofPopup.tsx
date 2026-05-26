@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Zap, CheckCircle2 } from 'lucide-react';
+import { Zap, CheckCircle2 } from 'lucide-react';
 import type { FeedEvent } from '../../hooks/useRealtimeFeed';
 
 interface SocialProofPopupProps {

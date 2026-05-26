@@ -14,7 +14,7 @@ import { PRODUCTS_DATA } from './data/products';
 import type { Product } from './data/products';
 import { TechIcon } from './components/TechIcon';
 import { supabase } from './lib/supabase';
-import { ShoppingCart, Trash2, X, ShieldCheck, Zap } from 'lucide-react';
+import { ShoppingCart, Trash2, X, ShieldCheck } from 'lucide-react';
 import { useProducts } from './hooks/useProducts';
 import { ProductVideoModal } from './components/ProductVideoModal';
 import { DiscountWheelProvider } from './context/DiscountWheelContext';
@@ -23,8 +23,11 @@ import { WebChatWindow } from './components/chat/WebChatWindow';
 import { useWebChat } from './hooks/useWebChat';
 import { useTheme } from './hooks/useTheme';
 import { useRealtimeFeed } from './hooks/useRealtimeFeed';
+import { useFavorites } from './hooks/useFavorites';
 import { SocialProofPopup } from './components/ui/SocialProofPopup';
 import { RealtimeToast } from './components/ui/RealtimeToast';
+import { FavoritesDrawer } from './components/FavoritesDrawer';
+import { useAnalytics } from './hooks/useAnalytics';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -32,16 +35,23 @@ function App() {
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
   const [cart, setCart] = React.useState<Product[]>([]);
   const [cartOpen, setCartOpen] = React.useState(false);
-  const [notification, setNotification] = React.useState<string | null>(null);
   const [simulatedCheckoutActive, setSimulatedCheckoutActive] = React.useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = React.useState(false);
   const [selectedVideoProduct, setSelectedVideoProduct] = React.useState<Product | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = React.useState(false);
+  const [favoritesOpen, setFavoritesOpen] = React.useState(false);
   const { products: dbProducts, loading, error } = useProducts(false);
   
+  // Coupon States
+  const [couponCodeInput, setCouponCodeInput] = React.useState('');
+  const [appliedCoupon, setAppliedCoupon] = React.useState<{ code: string, discount: number } | null>(null);
+  const [couponStatus, setCouponStatus] = React.useState<{ type: 'loading' | 'success' | 'error', message?: string } | null>(null);
+
   const { isOpen: isChatOpen, setIsOpen: setIsChatOpen } = useWebChat();
   useTheme(); // Inicializa e aplica a persistência de tema
-  const { recentEvent, onlineUsers, triggerToast } = useRealtimeFeed();
+  const { recentEvent, triggerToast } = useRealtimeFeed();
+  const { favorites, toggleFavorite } = useFavorites();
+  const { trackEvent } = useAnalytics();
 
   const handleOpenVideo = (product: Product) => {
     setSelectedVideoProduct(product);
@@ -98,11 +108,71 @@ function App() {
     setCart(prev => prev.filter(item => item.id !== productId));
   };
 
-  const cartTotal = React.useMemo(() => {
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    
+    setCouponStatus({ type: 'loading' });
+    const code = couponCodeInput.trim().toUpperCase();
+
+    // 1. Checar Roleta Local (LocalStorage)
+    try {
+      const stored = localStorage.getItem('nexus_discount_wheel');
+      if (stored) {
+        const wheelData = JSON.parse(stored);
+        const activeItem = Object.values(wheelData).find((d: any) => d.coupon === code && new Date(d.expiresAt) > new Date());
+        if (activeItem) {
+          setAppliedCoupon({ code, discount: (activeItem as any).discount });
+          setCouponStatus({ type: 'success', message: `Cupom de ${(activeItem as any).discount}% aplicado!` });
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Checar Banco de Dados (Supabase)
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', code)
+        .eq('active', true)
+        .single();
+      
+      if (error || !data) {
+        setCouponStatus({ type: 'error', message: 'Cupom inválido ou expirado.' });
+        return;
+      }
+
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        setCouponStatus({ type: 'error', message: 'Este cupom já expirou.' });
+        return;
+      }
+
+      if (data.usage_limit && data.usage_count >= data.usage_limit) {
+        setCouponStatus({ type: 'error', message: 'Limite de uso esgotado.' });
+        return;
+      }
+
+      setAppliedCoupon({ code: data.code, discount: data.discount_percent });
+      setCouponStatus({ type: 'success', message: `Cupom de ${data.discount_percent}% aplicado!` });
+      trackEvent('coupon_used', { code: data.code, discount: data.discount_percent });
+    } catch (err) {
+      setCouponStatus({ type: 'error', message: 'Erro ao validar cupom.' });
+    }
+  };
+
+  const cartSubtotal = React.useMemo(() => {
     return cart.reduce((acc, item) => acc + item.price, 0);
   }, [cart]);
 
+  const cartTotal = React.useMemo(() => {
+    if (appliedCoupon) {
+      return cartSubtotal * (1 - appliedCoupon.discount / 100);
+    }
+    return cartSubtotal;
+  }, [cartSubtotal, appliedCoupon]);
+
   const handleCartCheckout = () => {
+    trackEvent('checkout_clicked', { cart_size: cart.length, total: cartTotal });
     setSimulatedCheckoutActive(true);
   };
 
@@ -153,6 +223,8 @@ function App() {
         setSelectedCategory={setSelectedCategory}
         cartCount={cart.length}
         onOpenCart={() => setCartOpen(true)}
+        favoritesCount={favorites.length}
+        onOpenFavorites={() => setFavoritesOpen(true)}
       />
 
       {/* Hero Section */}
@@ -379,10 +451,49 @@ function App() {
               {/* Drawer Footer (Only if not in checkout step) */}
               {!simulatedCheckoutActive && cart.length > 0 && (
                 <div className="p-6 border-t border-theme-border space-y-4 bg-theme-bg">
-                  <div className="flex items-center justify-between text-sm font-bold">
-                    <span className="text-theme-muted">Subtotal:</span>
-                    <span className="font-mono text-brand-orange text-lg">R$ {cartTotal}</span>
+                  
+                  {/* Coupon Input Area */}
+                  <div className="space-y-2 pb-2 border-b border-theme-border">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Cupom de desconto"
+                        value={couponCodeInput}
+                        onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                        className="flex-1 px-3 py-2 bg-theme-card border border-theme-border rounded-lg text-sm text-theme-text placeholder:text-theme-muted focus:outline-none focus:border-brand-orange uppercase font-mono"
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={!couponCodeInput || couponStatus?.type === 'loading'}
+                        className="px-4 py-2 bg-theme-border/20 border border-theme-border hover:bg-theme-border/40 hover:border-brand-orange/30 text-theme-text text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {couponStatus?.type === 'loading' ? '...' : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponStatus && (
+                      <p className={`text-xs font-semibold ${couponStatus.type === 'success' ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {couponStatus.message}
+                      </p>
+                    )}
                   </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs text-theme-muted font-medium">
+                      <span>Subtotal:</span>
+                      <span className="font-mono">R$ {cartSubtotal.toFixed(2)}</span>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex items-center justify-between text-xs text-emerald-500 font-bold">
+                        <span>Desconto ({appliedCoupon.discount}%):</span>
+                        <span className="font-mono">- R$ {(cartSubtotal * (appliedCoupon.discount / 100)).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-sm font-black pt-2">
+                      <span className="text-theme-text">Total:</span>
+                      <span className="font-mono text-brand-orange text-lg">R$ {cartTotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+
                   <button 
                     onClick={handleCartCheckout}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
@@ -402,6 +513,15 @@ function App() {
         isOpen={isVideoModalOpen}
         product={selectedVideoProduct}
         onClose={handleCloseVideo}
+        onAddToCart={handleAddToCart}
+      />
+
+      {/* Favorites Drawer */}
+      <FavoritesDrawer
+        isOpen={favoritesOpen}
+        onClose={() => setFavoritesOpen(false)}
+        favorites={favorites}
+        onRemoveFavorite={toggleFavorite}
         onAddToCart={handleAddToCart}
       />
 

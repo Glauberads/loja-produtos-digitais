@@ -6,6 +6,7 @@ import { AdminLayout } from './components/admin/layout/AdminLayout';
 import { DashboardPage } from './pages/admin/DashboardPage';
 import { AnalyticsPage } from './pages/admin/AnalyticsPage';
 import { ProductsPage } from './pages/admin/ProductsPage';
+import { CouponsPage } from './pages/admin/CouponsPage';
 import { MarketingPage } from './pages/admin/MarketingPage';
 import { IntegrationsPage } from './pages/admin/IntegrationsPage';
 import { OrdersPage } from './pages/admin/OrdersPage';
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'products', element: <ProductsPage /> },
+      { path: 'coupons', element: <CouponsPage /> },
       { path: 'marketing', element: <MarketingPage /> },
       { path: 'integrations', element: <IntegrationsPage /> },
       { path: 'orders', element: <OrdersPage /> },

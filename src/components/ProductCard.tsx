@@ -1,11 +1,12 @@
 import React from 'react';
-import { ShoppingCart, Globe, CreditCard, Zap } from 'lucide-react';
+import { ShoppingCart, Globe, CreditCard, Zap, Heart } from 'lucide-react';
 import type { Product } from '../data/products';
 import { TechIcon } from './TechIcon';
 import { motion } from 'framer-motion';
 import { useDiscountWheel, type DiscountData } from '../hooks/useDiscountWheel';
 import { DiscountCountdown } from './wheel/DiscountCountdown';
 import { useDiscountWheelContext } from '../context/DiscountWheelContext';
+import { useFavorites } from '../hooks/useFavorites';
 
 interface ProductCardProps {
   product: Product;
@@ -22,8 +23,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const { openWheel } = useDiscountWheelContext();
   const { getActiveDiscount, clearExpiredDiscount, buildCheckoutUrl } = useDiscountWheel();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [activeDiscount, setActiveDiscount] = React.useState<DiscountData | null>(null);
   const [copiedCoupon, setCopiedCoupon] = React.useState(false);
+  
+  const isFav = isFavorite(product.id);
 
   React.useEffect(() => {
     const checkDiscount = () => {
@@ -98,11 +102,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Abstract light grid background */}
         <div className="absolute inset-0 bg-[radial-gradient(#bfdbfe_1px,transparent_1px)] [background-size:16px_16px] opacity-25 pointer-events-none"></div>
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 z-10 pointer-events-none">
+        {/* Badges and Heart */}
+        <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
           <span className="bg-[#EAB308] text-white text-[9px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wider">
             ★ DESTAQUE
           </span>
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFavorite(product);
+            }}
+            className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-black/40 transition-colors"
+          >
+            <Heart size={15} className={`${isFav ? 'text-brand-orange fill-brand-orange' : 'text-white'}`} />
+          </button>
         </div>
         <div className="absolute top-3 right-3 z-20">
           {!activeDiscount ? (
