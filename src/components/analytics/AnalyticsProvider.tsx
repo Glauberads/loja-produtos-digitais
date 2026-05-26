@@ -4,13 +4,12 @@ import { useLocation } from 'react-router-dom';
 
 export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [pixelId, setPixelId] = useState<string | null>(null);
-  const [gtmId, setGtmId] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
     const fetchTrackingIds = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('public_settings')
           .select('value')
           .eq('id', 'tracking_ids')
@@ -19,7 +18,6 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (data?.value) {
           const config = data.value as { pixel_id?: string; gtm_id?: string };
           if (config.pixel_id) setPixelId(config.pixel_id);
-          if (config.gtm_id) setGtmId(config.gtm_id);
         }
       } catch (err) {
         // Silently ignore tracking fetch errors for visitors
