@@ -34,6 +34,7 @@ interface Banner {
   subtitle: string;
   cta: string;
   ctaUrl: string;
+  videoUrl?: string;
   color: string;
   active: boolean;
   createdAt: string;
@@ -75,7 +76,7 @@ const DEFAULT_SEO: SeoConfig = {
 };
 
 const DEFAULT_BANNERS: Banner[] = [
-  { id: '1', title: '🔥 Lançamento', subtitle: 'Tenha sua própria plataforma SaaS de WhatsApp', cta: 'Explorar Sistemas', ctaUrl: '#vitrine', color: 'from-orange-600 to-orange-400', active: true, createdAt: '2026-05-01' },
+  { id: '1', title: '🔥 Lançamento', subtitle: 'Tenha sua própria plataforma SaaS de WhatsApp', cta: 'Explorar Sistemas', ctaUrl: '#vitrine', videoUrl: 'https://www.youtube.com/embed/ZVVOBnVRFVA?si=NexusSaaS', color: 'from-orange-600 to-orange-400', active: true, createdAt: '2026-05-01' },
 ];
 
 const GRADIENT_OPTIONS = [
@@ -433,6 +434,7 @@ const BannersSection: React.FC = () => {
         subtitle: form.subtitle ?? '',
         cta: form.cta ?? 'Ver Agora',
         ctaUrl: form.ctaUrl ?? '#',
+        videoUrl: form.videoUrl ?? '',
         color: form.color ?? GRADIENT_OPTIONS[0].value,
         active: true,
         createdAt: new Date().toISOString().slice(0, 10),
@@ -508,6 +510,10 @@ const BannersSection: React.FC = () => {
                 <div>
                   <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">URL do Botão</label>
                   <input value={form.ctaUrl ?? ''} onChange={e => setForm(p => ({ ...p, ctaUrl: e.target.value }))} placeholder="#vitrine" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-all" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">URL do Vídeo (YouTube Embed)</label>
+                  <input value={form.videoUrl ?? ''} onChange={e => setForm(p => ({ ...p, videoUrl: e.target.value }))} placeholder="Ex: https://www.youtube.com/embed/SEU_VIDEO" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-all" />
                 </div>
                 <div className="col-span-2">
                   <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-2">Cor / Gradiente</label>

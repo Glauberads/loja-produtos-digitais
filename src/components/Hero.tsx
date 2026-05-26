@@ -7,18 +7,30 @@ export interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
-  const [videoUrl, setVideoUrl] = React.useState('https://www.youtube.com/embed/ZVVOBnVRFVA?si=NexusSaaS');
+  const [banner, setBanner] = React.useState<any>(null);
 
   React.useEffect(() => {
-    const savedUrl = localStorage.getItem('nexus_hero_video_url');
-    if (savedUrl) {
-      setVideoUrl(savedUrl);
-    }
+    const loadBanner = () => {
+      try {
+        const raw = localStorage.getItem('nexus_admin_banners');
+        if (raw) {
+          const banners = JSON.parse(raw);
+          const active = banners.find((b: any) => b.active);
+          if (active) {
+            setBanner(active);
+            return;
+          }
+        }
+      } catch (e) {}
+      setBanner(null);
+    };
+
+    loadBanner();
     
-    // Listen for cross-tab changes or dynamic updates if needed
+    // Listen for cross-tab changes or dynamic updates
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'nexus_hero_video_url' && e.newValue) {
-        setVideoUrl(e.newValue);
+      if (e.key === 'nexus_admin_banners') {
+        loadBanner();
       }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -60,7 +72,7 @@ export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
             transition={{ duration: 0.6 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-theme-text flex items-center justify-center gap-3 select-none"
           >
-            🔥 Lançamento 🔥
+            {banner?.title || '🔥 Lançamento 🔥'}
           </motion.h1>
 
           {/* Subheadline (Exactly as the print) */}
@@ -70,7 +82,7 @@ export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-theme-text leading-snug font-sans"
           >
-            Tenha sua própria plataforma SaaS de WhatsApp
+            {banner?.subtitle || 'Tenha sua própria plataforma SaaS de WhatsApp'}
           </motion.h2>
           
         </div>
@@ -83,10 +95,17 @@ export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
           className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto pt-2"
         >
           <button
-            onClick={() => scrollToSection('vitrine')}
+            onClick={() => {
+              const url = banner?.ctaUrl || '#vitrine';
+              if (url.startsWith('#')) {
+                scrollToSection(url.replace('#', ''));
+              } else {
+                window.location.href = url;
+              }
+            }}
             className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-base font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
           >
-            Explorar Sistemas
+            {banner?.cta || 'Explorar Sistemas'}
             <ArrowRight size={18} />
           </button>
           <button
@@ -108,7 +127,7 @@ export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
           {/* A URL DO VÍDEO AGORA É CONFIGURÁVEL NO PAINEL ADMIN (CONFIGURAÇÕES) */}
           {/* ========================================================= */}
           <iframe 
-            src={videoUrl} 
+            src={banner?.videoUrl || 'https://www.youtube.com/embed/ZVVOBnVRFVA?si=NexusSaaS'} 
             title="Apresentação NexusSaaS"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
