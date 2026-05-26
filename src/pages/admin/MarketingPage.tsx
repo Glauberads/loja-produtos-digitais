@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Ticket, Search, TrendingUp, Plus, Trash2, Copy, CheckCircle2,
-  Save, Eye, EyeOff, Tag, Globe, Image, AlertCircle, Check
+  Save, Eye, EyeOff, Edit3, Tag, Globe, Image, AlertCircle, Check
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -560,8 +560,8 @@ const BannersSection: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all" title="Editar">
-                <Tag size={14} />
+              <button onClick={() => openEdit(b)} className="flex items-center gap-1.5 p-1.5 px-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all" title="Editar Banner">
+                <Edit3 size={14} /> <span className="text-[10px] font-bold hidden sm:inline">Editar</span>
               </button>
               <button onClick={() => toggleBanner(b.id)} className={`p-1.5 rounded-lg transition-all ${b.active ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-white/5 text-white/30 hover:bg-white/10 hover:text-white'}`} title={b.active ? 'Desativar' : 'Ativar'}>
                 {b.active ? <Eye size={14} /> : <EyeOff size={14} />}

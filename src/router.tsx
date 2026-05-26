@@ -1,5 +1,6 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
+import { AnalyticsProvider } from './components/analytics/AnalyticsProvider';
 import App from './App';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { AdminLayout } from './components/admin/layout/AdminLayout';
@@ -18,37 +19,51 @@ import { AdminsPage } from './pages/admin/AdminsPage';
 import { AiSettingsPage } from './pages/admin/AiSettingsPage';
 import { LeadsPage } from './pages/admin/LeadsPage';
 
+const RootLayout = () => {
+  return (
+    <AnalyticsProvider>
+      <Outlet />
+    </AnalyticsProvider>
+  );
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,    
-  },
-  {
-    path: '/admin/login',
-    element: <AdminLogin />,    
-  },
-  {
-    path: '/admin',
-    element: <AdminLayout />,    
+    element: <RootLayout />,
     children: [
-      { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'analytics', element: <AnalyticsPage /> },
-      { path: 'products', element: <ProductsPage /> },
-      { path: 'coupons', element: <CouponsPage /> },
-      { path: 'marketing', element: <MarketingPage /> },
-      { path: 'integrations', element: <IntegrationsPage /> },
-      { path: 'orders', element: <OrdersPage /> },
-      { path: 'customers', element: <CustomersPage /> },
-      { path: 'admins', element: <AdminsPage /> },
-      { path: 'reviews', element: <ReviewsPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-      { path: 'ai-settings', element: <AiSettingsPage /> },
-      { path: 'leads', element: <LeadsPage /> },
-      { path: 'logs', element: <LogsPage /> },
-      { path: '*', element: <Navigate to="dashboard" replace /> },
-    ],
-  },
-  { path: '*', element: <Navigate to="/" replace /> },
+      {
+        path: '/',
+        element: <App />,    
+      },
+      {
+        path: '/admin/login',
+        element: <AdminLogin />,    
+      },
+      {
+        path: '/admin',
+        element: <AdminLayout />,    
+        children: [
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'analytics', element: <AnalyticsPage /> },
+          { path: 'products', element: <ProductsPage /> },
+          { path: 'coupons', element: <CouponsPage /> },
+          { path: 'marketing', element: <MarketingPage /> },
+          { path: 'integrations', element: <IntegrationsPage /> },
+          { path: 'orders', element: <OrdersPage /> },
+          { path: 'customers', element: <CustomersPage /> },
+          { path: 'admins', element: <AdminsPage /> },
+          { path: 'reviews', element: <ReviewsPage /> },
+          { path: 'settings', element: <SettingsPage /> },
+          { path: 'ai-settings', element: <AiSettingsPage /> },
+          { path: 'leads', element: <LeadsPage /> },
+          { path: 'logs', element: <LogsPage /> },
+          { path: '*', element: <Navigate to="dashboard" replace /> },
+        ],
+      },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ]
+  }
 ]);
 
 export const AppRouter: React.FC = () => {

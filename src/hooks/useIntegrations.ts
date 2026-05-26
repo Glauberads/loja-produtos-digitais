@@ -53,6 +53,19 @@ export function useIntegrations() {
         });
         
       if (error) throw error;
+
+      // Extract public tracking IDs and save them to public_settings
+      const publicData = {
+        pixel_id: newConfigs['meta_pixel']?.['pixel_id'] || '',
+        gtm_id: newConfigs['google_tag']?.['gtm_id'] || '',
+      };
+      
+      await supabase.from('public_settings').upsert({
+        id: 'tracking_ids',
+        value: publicData,
+        updated_at: new Date().toISOString()
+      });
+
       setSavedConfigs(newConfigs);
       return true;
     } catch (err: unknown) {
