@@ -85,3 +85,5 @@ Após configurar sua chave no Painel Admin:
 2. Revise o **Prompt do Sistema**. É nele que você dá a "personalidade" ao seu Agente. Instrua ele a ser um vendedor, listar os benefícios do SaaS e focar em converter visitantes em leads.
 3. Se estiver usando o **Modo Híbrido**, preencha também o **WhatsApp para Leads**, para onde o usuário será enviado ao preencher o formulário.
 4. Teste o chat na vitrine da loja! Se o agente falhar ao responder, certifique-se de que a API Key foi copiada corretamente sem espaços antes ou depois.
+
+> **💡 Dica UI/UX:** O chat de inteligência artificial já possui suporte total à alternância de **Dark Mode / Light Mode**, mesclando suas cores com as variáveis do tema nativo automaticamente sem a necessidade de customizações adicionais.

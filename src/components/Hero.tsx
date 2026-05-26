@@ -2,7 +2,11 @@ import React from 'react';
 import { ArrowRight, Terminal, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export const Hero: React.FC = () => {
+export interface HeroProps {
+  onlineUsers?: number;
+}
+
+export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -22,6 +26,15 @@ export const Hero: React.FC = () => {
         {/* Centered Headline Container */}
         <div className="flex flex-col items-center space-y-4 max-w-3xl">
           
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-bold uppercase tracking-widest mb-2"
+          >
+            <span className="w-2 h-2 rounded-full bg-brand-orange animate-pulse"></span>
+            {onlineUsers} pessoas navegando agora
+          </motion.div>
+
           {/* Main Headline (Exactly as the print) */}
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}

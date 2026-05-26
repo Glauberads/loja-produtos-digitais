@@ -35,10 +35,12 @@ A **Loja NexusSaaS** é um marketplace digital premium para venda de sistemas Sa
 
 | Área | Funcionalidade |
 |------|---------------|
-| **Vitrine** | Catálogo de produtos com filtros, busca, categorias e modal de detalhes |
-| **Carrinho** | Adição/remoção de produtos com simulação de checkout |
-| **Admin** | Dashboard completo com métricas, gerenciamento de produtos, pedidos, clientes e avaliações |
-| **Integrações** | Gateways de pagamento (Stripe, Mercado Pago, Asaas, Pagar.me), Marketing (Meta Pixel, Google Tag), Comunicação (Resend) |
+| **Vitrine** | Catálogo com Dark/Light Mode, filtros, busca e modal de detalhes dinâmico com Vídeo |
+| **Carrinho** | Adição/remoção de produtos com simulação de checkout e suporte a cupom |
+| **Atendimento Inteligente** | Web Chat Integrado com Inteligência Artificial e fallback para captação de leads |
+| **Gamificação** | Roleta de Ofertas para geração de cupons temporários |
+| **Admin** | Dashboard com métricas, gerência de produtos, IA, configurações, leads e integrações |
+| **Integrações** | Supabase Edge Functions (Groq, Gemini, OpenRouter), Gateways e Rastreamento |
 | **Banco de Dados** | Supabase (PostgreSQL) com RLS ativado |
 
 ---
@@ -46,7 +48,7 @@ A **Loja NexusSaaS** é um marketplace digital premium para venda de sistemas Sa
 ## 2. Arquitetura e Estrutura de Pastas
 
 ```
-Loja ex Afcode/
+Nexus SaaS Vitrine Inteligente/
 ├── public/                     # Arquivos estáticos públicos
 ├── src/
 │   ├── App.tsx                 # Componente principal da vitrine pública
@@ -143,7 +145,7 @@ Loja ex Afcode/
 ```bash
 # Clonar o repositório (ou descompactar o .zip)
 git clone <url-do-repositorio>
-cd "Loja ex Afcode"
+cd "Nexus SaaS Vitrine Inteligente"
 
 # Instalar dependências
 npm install
@@ -230,6 +232,24 @@ Armazena todos os produtos do marketplace.
 | `created_at` | `timestamptz` | Data de criação |
 | `updated_at` | `timestamptz` | Data da última atualização |
 
+#### `leads`
+Armazena potenciais clientes capturados pela roleta ou pelo chat.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | `uuid` (PK) | Identificador único |
+| `name` | `text` | Nome do lead |
+| `whatsapp` | `text` | Número do WhatsApp |
+| `source` | `text` | Origem da captura (Chat, Roleta, etc) |
+| `status` | `text` | Status no pipeline (Novo, Em Contato, etc) |
+| `created_at` | `timestamptz` | Data de criação |
+
+#### `chat_messages` e `chat_conversations`
+Histórico de conversa entre os clientes e o Agente de IA.
+
+#### `ai_settings`
+Configurações da Inteligência Artificial (modelo, chaves, prompts, etc).
+
 #### `admin_users`
 Controle de acesso administrativo.
 
@@ -295,11 +315,13 @@ A vitrine é a página principal acessada em `/`. Consiste nas seguintes seçõe
 | **Categorias** | `CategoryGrid.tsx` | Grade de categorias clicáveis com ícones |
 | **Destaques** | `FeaturedSection.tsx` | Carrossel de produtos em destaque |
 | **Mais Vendidos** | `BestSellers.tsx` | Lista dos produtos com maior número de vendas |
-| **Tendências** | `TrendingSection.tsx` | Produtos em alta com base em atividade recente |
-| **Catálogo Completo** | `ProductGrid.tsx` | Grade completa de todos os produtos com filtros |
-| **Filtros** | `SidebarFilters.tsx` | Filtros laterais (categoria, faixa de preço, rating) |
-| **FAQ** | `FAQ.tsx` | Perguntas e respostas frequentes com acordeão |
-| **Rodapé** | `Footer.tsx` | Links úteis, redes sociais e informações legais |
+| **Tendências** | `TrendingSection.tsx` | Produtos em Alta |
+| **Catálogo** | `ProductGrid.tsx` | Grade completa de todos os produtos com filtros |
+| **Filtros** | `SidebarFilters.tsx` | Filtros laterais (categoria, preço, rating) |
+| **FAQ** | `FAQ.tsx` | Acordeão de perguntas frequentes |
+| **Rodapé** | `Footer.tsx` | Links úteis, redes sociais e newsletter |
+| **Roleta** | `DiscountWheelModal.tsx` | Roleta de ofertas ativada para capturar leads |
+| **Chat IA** | `WebChatWindow.tsx` | Balão flutuante para atendimento via Inteligência Artificial |
 
 ### Funcionalidades do Carrinho
 
@@ -403,18 +425,21 @@ A página de integrações (`/admin/integrations`) permite configurar serviços 
 
 | Componente | Tamanho | Descrição |
 |------------|---------|-----------|
-| `ProductDetailsModal.tsx` | ~19KB | Modal completo com todas as informações do produto |
-| `ProductCard.tsx` | ~12KB | Card de produto com hover, animações e ações |
-| `Header.tsx` | ~8KB | Navegação principal com busca e carrinho |
-| `Hero.tsx` | ~8KB | Seção hero animada com gradientes |
-| `Footer.tsx` | ~8KB | Rodapé com links e redes sociais |
-| `SidebarFilters.tsx` | ~7KB | Filtros de categoria, preço e avaliação |
-| `CategoryGrid.tsx` | ~6.5KB | Grade responsiva de categorias |
-| `ProductGrid.tsx` | ~6KB | Grade de produtos com paginação |
-| `FeaturedSection.tsx` | ~5.5KB | Produtos destacados em destaque |
-| `TrendingSection.tsx` | ~5KB | Produtos em tendência |
+| `ProductDetailsModal.tsx` | ~19KB | Modal com detalhes descritivos e botão principal |
+| `ProductVideoModal.tsx` | ~8KB | Modal avançado para embed de vídeos do YouTube/Loom/Vimeo e checkout com cupons |
+| `DiscountWheelModal.tsx` | ~8KB | Modal interativo da Roleta Gamificada de Descontos |
+| `WebChatWindow.tsx` | ~5KB | Janela e controles do assistente conversacional via IA |
+| `ProductCard.tsx` | ~17KB | Card de produto com variações dinâmicas pelo tema |
+| `Header.tsx` | ~8KB | Navegação principal, incluindo toggle Solar/Lunar (Light/Dark Mode) |
+| `Hero.tsx` | ~8KB | Seção hero animada |
+| `Footer.tsx` | ~8KB | Rodapé e informações legais |
+| `SidebarFilters.tsx` | ~7KB | Filtros da grade de produtos |
+| `CategoryGrid.tsx` | ~6.5KB | Categorias responsivas |
+| `ProductGrid.tsx` | ~6KB | Listagem principal de produtos |
+| `FeaturedSection.tsx` | ~5.5KB | Produtos em destaque |
+| `TrendingSection.tsx`| ~5KB | Produtos em tendência |
 | `FAQ.tsx` | ~5KB | Acordeão de perguntas frequentes |
-| `BestSellers.tsx` | ~3.7KB | Ranking dos mais vendidos |
+| `BestSellers.tsx` | ~3.7KB | Ranking de vendas |
 
 ### 11.2 Componentes do Admin
 

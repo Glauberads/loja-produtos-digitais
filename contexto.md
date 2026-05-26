@@ -45,7 +45,13 @@ O **NexusSaaS** é o maior marketplace digital premium de sistemas SaaS, automa�
 - Integração com **WhatsApp API (Evolution API, Z-API, WPPConnect)**
 - Compatível com **n8n, Make (Integromat), Zapier**
 - Gateways de pagamento: **Mercado Pago, Asaas, Stripe, Pix nativo**
-- IA: **OpenAI GPT-4, Claude, Gemini**
+- Agente de Chat com IA: **OpenAI GPT-4, Claude, Gemini, Groq, OpenRouter**
+
+### 9. Recursos Premium de Conversão
+- **Modo Claro e Escuro (Dark/Light Mode)** nativo e persistente.
+- **Roleta de Descontos Gamificada** para captura de leads.
+- **Web Chat IA** com fallback para captação direta para o WhatsApp.
+- **Modal de Vídeo Inteligente** com suporte a YouTube, Vimeo, Loom e MP4.
 
 ---
 
@@ -117,6 +123,8 @@ O **NexusSaaS** é o maior marketplace digital premium de sistemas SaaS, automa�
 | Stack moderna | ✅ React/Next/Node | ⚠️ Legado/PHP |
 | Suporte em português | ✅ Nativo BR | ❌ Inglês |
 | Integrações nativas | ✅ WhatsApp/IA/PIX | ⚠️ Limitado |
+| Design Premium | ✅ Dark & Light Mode | ❌ Temas Básicos |
+| Ferramentas de Retenção | ✅ IA, Roleta de Ofertas | ❌ Não possui |
 | Atualizações vitalícias | ✅ Incluídas | ❌ Extra pago |
 
 ---

@@ -9,6 +9,7 @@ import { ProductGrid } from './components/ProductGrid';
 import { ProductDetailsModal } from './components/ProductDetailsModal';
 import { FAQ } from './components/FAQ';
 import { Footer } from './components/Footer';
+import { DailyOffers } from './components/DailyOffers';
 import { PRODUCTS_DATA } from './data/products';
 import type { Product } from './data/products';
 import { TechIcon } from './components/TechIcon';
@@ -21,6 +22,9 @@ import { FloatingChatButton } from './components/chat/FloatingChatButton';
 import { WebChatWindow } from './components/chat/WebChatWindow';
 import { useWebChat } from './hooks/useWebChat';
 import { useTheme } from './hooks/useTheme';
+import { useRealtimeFeed } from './hooks/useRealtimeFeed';
+import { SocialProofPopup } from './components/ui/SocialProofPopup';
+import { RealtimeToast } from './components/ui/RealtimeToast';
 
 function App() {
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -37,6 +41,7 @@ function App() {
   
   const { isOpen: isChatOpen, setIsOpen: setIsChatOpen } = useWebChat();
   useTheme(); // Inicializa e aplica a persistência de tema
+  const { recentEvent, onlineUsers, triggerToast } = useRealtimeFeed();
 
   const handleOpenVideo = (product: Product) => {
     setSelectedVideoProduct(product);
@@ -81,23 +86,16 @@ function App() {
     
     // Avoid duplicates in cart for simulated download purchase
     if (cart.some(item => item.id === product.id)) {
-      showNotification(`"${product.name}" já está no seu carrinho.`);
+      triggerToast(`"${product.name}" já está no seu carrinho.`, 'view');
       return;
     }
 
     setCart(prev => [...prev, product]);
-    showNotification(`"${product.name}" adicionado ao carrinho!`);
+    triggerToast(`"${product.name}" adicionado ao carrinho!`, 'lead');
   };
 
   const handleRemoveFromCart = (productId: string) => {
     setCart(prev => prev.filter(item => item.id !== productId));
-  };
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => {
-      setNotification(null);
-    }, 3000);
   };
 
   const cartTotal = React.useMemo(() => {
@@ -139,12 +137,12 @@ function App() {
       <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] rounded-full bg-brand-orange/5 blur-[140px] pointer-events-none"></div>
       <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-brand-darkBlue/20 blur-[130px] pointer-events-none"></div>
 
-      {/* Alert Notification Toast */}
-      {notification && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-4 rounded-xl bg-theme-card border border-brand-orange/45 text-theme-text text-xs font-semibold shadow-neon-orange-lg animate-slideIn">
-          <Zap size={14} className="text-brand-orange animate-pulse" />
-          <span>{notification}</span>
-        </div>
+      {/* Global Realtime Components */}
+      {recentEvent && (recentEvent.type === 'purchase' || recentEvent.type === 'checkout') && (
+        <SocialProofPopup event={recentEvent} />
+      )}
+      {recentEvent && (recentEvent.type === 'view' || recentEvent.type === 'lead') && (
+        <RealtimeToast toast={recentEvent} />
       )}
 
       {/* Header Fixo */}
@@ -164,6 +162,14 @@ function App() {
       <CategoryGrid
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+      />
+
+      {/* Ofertas do Dia */}
+      <DailyOffers 
+        products={displayProducts}
+        onOpenDetails={setSelectedProduct}
+        onAddToCart={handleAddToCart}
+        onOpenVideo={handleOpenVideo}
       />
 
       {/* Lançamentos Premium (Destaques) */}

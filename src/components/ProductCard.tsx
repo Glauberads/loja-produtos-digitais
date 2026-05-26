@@ -246,6 +246,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <p className="text-[11px] text-theme-muted mt-1 line-clamp-2 leading-relaxed">
             🚀 {product.name} — {product.shortDescription}
           </p>
+
+          <div className="mt-2.5 flex items-center gap-1.5">
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-[9px] font-bold text-brand-orange">
+              {product.salesCount > 500 ? (
+                <><span>⚡</span> Alta demanda hoje</>
+              ) : (
+                <><span>👀</span> {Math.max(2, Math.floor(product.salesCount * 0.05) + (product.name.length % 5))} pessoas vendo</>
+              )}
+            </span>
+          </div>
         </div>
 
         {/* Price Section */}
