@@ -7,6 +7,24 @@ export interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
+  const [videoUrl, setVideoUrl] = React.useState('https://www.youtube.com/embed/ZVVOBnVRFVA?si=NexusSaaS');
+
+  React.useEffect(() => {
+    const savedUrl = localStorage.getItem('nexus_hero_video_url');
+    if (savedUrl) {
+      setVideoUrl(savedUrl);
+    }
+    
+    // Listen for cross-tab changes or dynamic updates if needed
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nexus_hero_video_url' && e.newValue) {
+        setVideoUrl(e.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -79,64 +97,23 @@ export const Hero: React.FC<HeroProps> = ({ onlineUsers = 42 }) => {
           </button>
         </motion.div>
 
-        {/* Centered Video / Demo Mockup Card */}
+        {/* Centered Video / Demo */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.96, y: 35 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-[760px] aspect-[16/9] rounded-3xl glassmorphism p-3.5 glow-border glow-border-hover shadow-2xl relative overflow-hidden group cursor-pointer"
-          onClick={() => scrollToSection('vitrine')}
+          className="w-full max-w-[860px] aspect-[16/9] rounded-3xl glassmorphism p-2 sm:p-3.5 glow-border shadow-2xl relative overflow-hidden bg-theme-card/50"
         >
-          {/* Simulated Window Header */}
-          <div className="flex items-center justify-between border-b border-theme-border pb-3 mb-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
-            </div>
-            <div className="text-[10px] text-theme-muted font-mono tracking-widest uppercase flex items-center gap-1 bg-theme-bg/60 px-2.5 py-0.5 rounded">
-              <Terminal size={10} className="text-brand-orange" />
-              demo_whatsapp_saas.mp4
-            </div>
-          </div>
-
-          {/* Video Mockup Interface */}
-          <div className="relative w-full h-[calc(100%-36px)] rounded-2xl overflow-hidden bg-theme-bg/80 flex items-center justify-center">
-            
-            {/* Tech grid layout design background representing SaaS Dashboard */}
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/5 via-theme-bg/20 to-brand-neonOrange/5 opacity-55 tech-grid-bg"></div>
-            
-            {/* Simulated UI components */}
-            <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-              <div className="flex items-center gap-2 bg-theme-card/85 border border-theme-border px-3 py-1.5 rounded-lg">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[9px] font-mono text-theme-text tracking-wider">Servidor: WhatsApp API Online</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="h-5 w-16 rounded bg-theme-border/20 border border-theme-border text-[8px] font-mono flex items-center justify-center text-theme-muted">Multi-tenant</span>
-                <span className="h-5 w-16 rounded bg-brand-orange/10 border border-brand-orange/30 text-[8px] font-mono flex items-center justify-center text-brand-orange font-bold">100% White Label</span>
-              </div>
-            </div>
-
-            {/* Central Giant Play Button (Exactly like the print) */}
-            <div className="relative z-10 flex flex-col items-center gap-4">
-              <div className="w-20 h-14 rounded-2xl bg-red-600 flex items-center justify-center text-white shadow-neon-orange group-hover:scale-110 group-hover:bg-red-500 transition-all duration-300">
-                {/* Simulated Youtube play icon */}
-                <Play size={28} fill="currentColor" className="ml-1 text-white" />
-              </div>
-              <span className="text-[10px] font-mono tracking-widest uppercase bg-theme-card border border-theme-border text-theme-muted px-3.5 py-1.5 rounded-full group-hover:text-brand-orange transition-colors">
-                Clique para Ver os Sistemas na Vitrine
-              </span>
-            </div>
-
-            {/* Footer indicators inside mockup */}
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-theme-muted font-mono text-[8px] pointer-events-none">
-              <span>Stack: Node.js, React, Tailwind, PostgreSQL</span>
-              <span>1080p Full HD Demo</span>
-            </div>
-            
-          </div>
-          
+          {/* ========================================================= */}
+          {/* A URL DO VÍDEO AGORA É CONFIGURÁVEL NO PAINEL ADMIN (CONFIGURAÇÕES) */}
+          {/* ========================================================= */}
+          <iframe 
+            src={videoUrl} 
+            title="Apresentação NexusSaaS"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-full h-full rounded-2xl bg-black/80 border border-theme-border"
+          />
         </motion.div>
 
         {/* Info tags below video */}

@@ -7,9 +7,16 @@ export const SettingsPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // States
+  const [videoUrl, setVideoUrl] = useState(() => {
+    return localStorage.getItem('nexus_hero_video_url') || 'https://www.youtube.com/embed/ZVVOBnVRFVA?si=NexusSaaS';
+  });
+
   const handleSave = () => {
     setIsSaving(true);
+    // Simulating save
     setTimeout(() => {
+      localStorage.setItem('nexus_hero_video_url', videoUrl);
       setIsSaving(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -97,6 +104,17 @@ export const SettingsPage: React.FC = () => {
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-xs font-semibold text-white/50 uppercase tracking-wider">Descrição (Meta SEO)</label>
                       <textarea rows={3} defaultValue="A melhor plataforma de vendas whitelabel de sistemas." className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-brand-orange/50 focus:outline-none transition-colors resize-none" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-semibold text-white/50 uppercase tracking-wider">URL do Vídeo (Vitrine Principal)</label>
+                      <input 
+                        type="text" 
+                        value={videoUrl}
+                        onChange={(e) => setVideoUrl(e.target.value)}
+                        placeholder="Ex: https://www.youtube.com/embed/SEU_VIDEO" 
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-brand-orange/50 focus:outline-none transition-colors" 
+                      />
+                      <p className="text-[10px] text-white/40">Certifique-se de usar o link no formato /embed/ do YouTube.</p>
                     </div>
                   </div>
                 </div>

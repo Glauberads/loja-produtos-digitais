@@ -1,4 +1,4 @@
-# 📘 Documentação Completa — Loja NexusSaaS
+# 📘 Documentação Completa — Nexus SaaS Vitrine Inteligente
 
 > **Versão:** 1.0.0  
 > **Última atualização:** 21 de Maio de 2026  
@@ -29,7 +29,7 @@
 
 ## 1. Visão Geral do Projeto
 
-A **Loja NexusSaaS** é um marketplace digital premium para venda de sistemas SaaS, automações, dashboards, templates e ferramentas digitais. A plataforma funciona como uma vitrine estilo ThemeForest/CodeCanyon, 100% focada no mercado brasileiro.
+A **Nexus SaaS Vitrine Inteligente** é um marketplace digital premium para venda de sistemas SaaS, automações, dashboards, templates e ferramentas digitais. A plataforma funciona como uma vitrine estilo ThemeForest/CodeCanyon, 100% focada no mercado brasileiro.
 
 ### Principais Funcionalidades
 
