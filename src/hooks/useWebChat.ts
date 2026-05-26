@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAnalytics } from './useAnalytics';
 
 export type ChatMode = 'ai' | 'lead_capture' | 'hybrid';
 
@@ -25,6 +26,7 @@ export function useWebChat() {
   const [visitorId, setVisitorId] = useState<string>('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [leadCaptured, setLeadCaptured] = useState(false);
+  const { trackLead } = useAnalytics();
 
   // Initialize visitor ID and load config
   useEffect(() => {
@@ -202,6 +204,10 @@ export function useWebChat() {
       
       setLeadCaptured(true);
       localStorage.setItem(`lead_captured_${visitorId}`, 'true');
+      
+      // Aciona o evento de Lead Avançado
+      trackLead('WebChat', whatsapp);
+      
       return true;
     } catch (err) {
       console.error('Error capturing lead:', err);

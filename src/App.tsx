@@ -51,7 +51,12 @@ function App() {
   useTheme(); // Inicializa e aplica a persistência de tema
   const { recentEvent, triggerToast } = useRealtimeFeed();
   const { favorites, toggleFavorite } = useFavorites();
-  const { trackEvent } = useAnalytics();
+  const { trackEvent, trackAddToCart, trackViewContent, trackInitiateCheckout, trackPurchase } = useAnalytics();
+
+  const handleOpenDetails = (product: Product) => {
+    setSelectedProduct(product);
+    trackViewContent(product);
+  };
 
   const handleOpenVideo = (product: Product) => {
     setSelectedVideoProduct(product);
@@ -102,6 +107,7 @@ function App() {
 
     setCart(prev => [...prev, product]);
     triggerToast(`"${product.name}" adicionado ao carrinho!`, 'lead');
+    trackAddToCart(product);
   };
 
   const handleRemoveFromCart = (productId: string) => {
@@ -172,7 +178,7 @@ function App() {
   }, [cartSubtotal, appliedCoupon]);
 
   const handleCartCheckout = () => {
-    trackEvent('checkout_clicked', { cart_size: cart.length, total: cartTotal });
+    trackInitiateCheckout(cart, cartTotal);
     setSimulatedCheckoutActive(true);
   };
 
@@ -191,6 +197,10 @@ function App() {
         .insert(orderItems);
 
       if (error) throw error;
+      
+      // Simulate order id based on timestamp for dedup
+      const mockOrderId = `sim-${Date.now()}`;
+      trackPurchase(cart, cartTotal, mockOrderId);
     } catch (err) {
       console.error('Erro ao registrar pedidos no Supabase:', err);
     }
@@ -239,7 +249,7 @@ function App() {
       {/* Ofertas do Dia */}
       <DailyOffers 
         products={displayProducts}
-        onOpenDetails={setSelectedProduct}
+        onOpenDetails={handleOpenDetails}
         onAddToCart={handleAddToCart}
         onOpenVideo={handleOpenVideo}
       />
@@ -247,13 +257,13 @@ function App() {
       {/* Lançamentos Premium (Destaques) */}
       <FeaturedSection 
         products={displayProducts}
-        onOpenDetails={setSelectedProduct}
+        onOpenDetails={handleOpenDetails}
       />
 
       {/* Os Mais Vendidos (Carrossel) */}
       <BestSellers
         products={displayProducts}
-        onOpenDetails={setSelectedProduct}
+        onOpenDetails={handleOpenDetails}
         onAddToCart={handleAddToCart}
         onOpenVideo={handleOpenVideo}
       />
@@ -264,7 +274,7 @@ function App() {
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
-        onOpenDetails={setSelectedProduct}
+        onOpenDetails={handleOpenDetails}
         onAddToCart={handleAddToCart}
         onOpenVideo={handleOpenVideo}
       />
@@ -272,7 +282,7 @@ function App() {
       {/* Sistemas em Alta */}
       <TrendingSection
         products={displayProducts}
-        onOpenDetails={setSelectedProduct}
+        onOpenDetails={handleOpenDetails}
       />
 
       {/* FAQ */}
