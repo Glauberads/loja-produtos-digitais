@@ -50,6 +50,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     { label: 'Clientes', icon: Users, path: '/admin/customers' },
     ...(role === 'super_admin' ? [{ label: 'Administradores', icon: ShieldCheck, path: '/admin/admins' }] : []),
     { label: 'Avaliações', icon: Star, path: '/admin/reviews' },
+    { label: 'Minha Área', icon: Package, path: '/admin/member-area' },
     { label: 'Analytics', icon: LineChart, path: '/admin/analytics' },
     { label: 'Configurações', icon: Settings, path: '/admin/settings' },
     { label: 'Chat IA', icon: Bot, path: '/admin/ai-settings' },

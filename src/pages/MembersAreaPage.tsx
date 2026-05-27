@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { getAccessesByEmail, getAccessByOrderId, validateAndConsumeDownloadToken } from '../services/delivery/deliveryService';
 import { getOrderById } from '../services/payments/paymentService';
+import { useMemberSettings } from '../hooks/useMemberSettings';
 import type { ProductAccessRow, OrderRow } from '../types/payment';
 
 // ── Componente de Card de Produto ────────────────────────────
@@ -15,7 +16,10 @@ const ProductAccessCard: React.FC<{
   access: ProductAccessRow;
   onDownload: (access: ProductAccessRow) => void;
   downloading: string | null;
-}> = ({ access, onDownload, downloading }) => {
+  buttonText?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+}> = ({ access, onDownload, downloading, buttonText = 'Acessar Produto', primaryColor = '#FF6A00', secondaryColor = '#3B82F6' }) => {
   const product = access.products as any;
   const order = access.orders as any;
   const isActive = access.active;
@@ -80,10 +84,11 @@ const ProductAccessCard: React.FC<{
               <button
                 onClick={() => onDownload(access)}
                 disabled={isDownloading}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-brand-orange to-orange-500 text-white text-xs font-bold hover:shadow-lg hover:shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-bold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: primaryColor, boxShadow: `0 4px 14px 0 ${primaryColor}40` }}
               >
                 {isDownloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
-                {isDownloading ? 'Abrindo...' : 'Acessar Produto'}
+                {isDownloading ? 'Abrindo...' : buttonText}
               </button>
               {product?.checkout_url && (
                 <a
@@ -165,6 +170,8 @@ export const MembersAreaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
   const tokenParam = searchParams.get('token');
+
+  const { settings, loading: settingsLoading } = useMemberSettings();
 
   const [accesses, setAccesses] = useState<ProductAccessRow[]>([]);
   const [singleAccess, setSingleAccess] = useState<ProductAccessRow | null>(null);
@@ -256,11 +263,11 @@ export const MembersAreaPage: React.FC = () => {
   // ── Renderização ─────────────────────────────────────────────
 
   // Loading
-  if (loading) {
+  if (loading || settingsLoading) {
     return (
       <div className="min-h-screen bg-[#060912] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: settings?.primary_color || '#FF6A00', borderTopColor: 'transparent' }} />
           <p className="text-white/40 text-sm">Carregando seus produtos...</p>
         </div>
       </div>
@@ -269,25 +276,43 @@ export const MembersAreaPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#060912] relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-blue-500/5 blur-[100px] pointer-events-none" />
+      {/* Background Dinâmico */}
+      {settings.banner_url ? (
+        <div className="absolute top-0 left-0 right-0 h-96 opacity-20 bg-cover bg-center" style={{ backgroundImage: `url(${settings.banner_url})` }} />
+      ) : (
+        <>
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-20" style={{ backgroundColor: settings.primary_color }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none opacity-20" style={{ backgroundColor: settings.secondary_color }} />
+        </>
+      )}
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-12">
 
-        {/* Header */}
+        {/* Header Dinâmico */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 text-[11px] text-white/30 mb-1">
+            <div className="flex items-center gap-2 text-[11px] text-white/30 mb-2">
               <a href="/" className="hover:text-white/60 transition-colors">← Voltar à Loja</a>
             </div>
-            <h1 className="text-2xl font-black text-white">Minha Área</h1>
-            {email && <p className="text-xs text-white/40 mt-0.5">Produtos de <span className="text-white/60">{email}</span></p>}
+            {settings.logo_url && (
+              <img src={settings.logo_url} alt="Logo" className="h-10 object-contain mb-4" />
+            )}
+            <h1 className="text-2xl font-black text-white">{settings.title}</h1>
+            <p className="text-sm text-white/50 mt-0.5">{settings.subtitle}</p>
+            {email && <p className="text-xs text-white/40 mt-1">Produtos de <span className="text-white/60">{email}</span></p>}
           </div>
-          <div className="w-10 h-10 rounded-xl bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center">
-            <Package size={18} className="text-brand-orange" />
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+            <Package size={18} style={{ color: settings.primary_color }} />
           </div>
         </div>
+
+        {/* Aviso Personalizado */}
+        {settings.custom_notice && (
+          <div className="mb-8 p-4 rounded-2xl border flex items-start gap-3 bg-yellow-500/10 border-yellow-500/20 text-yellow-500">
+            <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+            <p className="text-sm font-medium">{settings.custom_notice}</p>
+          </div>
+        )}
 
         {/* ── Conteúdo conforme contexto ─────────────────────── */}
 
@@ -323,21 +348,28 @@ export const MembersAreaPage: React.FC = () => {
               access={singleAccess}
               onDownload={handleDownload}
               downloading={downloading}
+              buttonText={settings.button_text}
+              primaryColor={settings.primary_color}
+              secondaryColor={settings.secondary_color}
             />
 
-            {/* Suporte */}
+            {/* Suporte Dinâmico */}
             <div className="mt-6 p-4 rounded-2xl bg-white/3 border border-white/5">
               <p className="text-xs text-white/30 mb-3">Precisa de ajuda?</p>
               <div className="flex items-center gap-3">
-                <a
-                  href="https://wa.me/5511999999999"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-green-400/70 hover:text-green-400 transition-colors"
-                >
-                  <MessageCircle size={12} /> WhatsApp Suporte
-                </a>
-                <span className="text-white/10">·</span>
+                {settings.show_support && (
+                  <>
+                    <a
+                      href={settings.support_whatsapp ? `https://wa.me/${settings.support_whatsapp.replace(/\D/g,'')}` : '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-green-400/70 hover:text-green-400 transition-colors"
+                    >
+                      <MessageCircle size={12} /> WhatsApp Suporte
+                    </a>
+                    <span className="text-white/10">·</span>
+                  </>
+                )}
                 <button
                   onClick={() => { if (email) handleEmailFound(email); }}
                   className="flex items-center gap-1 text-xs text-white/30 hover:text-white/60 transition-colors"
@@ -423,6 +455,9 @@ export const MembersAreaPage: React.FC = () => {
                     access={access}
                     onDownload={handleDownload}
                     downloading={downloading}
+                    buttonText={settings.button_text}
+                    primaryColor={settings.primary_color}
+                    secondaryColor={settings.secondary_color}
                   />
                 ))}
               </div>

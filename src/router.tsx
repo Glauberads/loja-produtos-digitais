@@ -24,6 +24,7 @@ import { DeliveryPage } from './pages/admin/DeliveryPage';
 import { AffiliatesPage } from './pages/admin/AffiliatesPage';
 import { CommissionsPage } from './pages/admin/CommissionsPage';
 import { SuccessOfferPage } from './pages/SuccessOfferPage';
+import { MemberAreaSettingsPage } from './pages/admin/MemberAreaSettingsPage';
 
 const RootLayout = () => {
   return (
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
           { path: 'reviews', element: <ReviewsPage /> },
           { path: 'settings', element: <SettingsPage /> },
           { path: 'ai-settings', element: <AiSettingsPage /> },
+          { path: 'member-area', element: <MemberAreaSettingsPage /> },
           { path: 'leads', element: <LeadsPage /> },
           { path: 'logs', element: <LogsPage /> },
           { path: 'delivery', element: <DeliveryPage /> },
