@@ -77,9 +77,9 @@ node register-admin.cjs
 
 ---
 
-## 🧠 Passo 5: Implantando a IA do Chat (Edge Functions)
+## 🧠 Passo 5: Implantando Edge Functions (IA, Pagamentos e Upsell)
 
-Para que o Chat IA consiga processar respostas sem expor chaves sensíveis ao público, usamos as Edge Functions.
+Para que a loja consiga processar pagamentos pesados e conversar com a inteligência artificial com segurança, usamos as Edge Functions.
 
 1. No terminal, certifique-se de estar logado na CLI do Supabase:
    ```bash
@@ -89,13 +89,18 @@ Para que o Chat IA consiga processar respostas sem expor chaves sensíveis ao p�
    ```bash
    npx supabase link --project-ref SEU_ID_REF_AQUI
    ```
-3. Implante a função da Inteligência Artificial:
+3. Implante todas as funções vitais:
    ```bash
    npx supabase functions deploy ai-chat --no-verify-jwt
+   npx supabase functions deploy create-payment --no-verify-jwt
+   npx supabase functions deploy payment-webhook --no-verify-jwt
+   npx supabase functions deploy process-upsell --no-verify-jwt
+   npx supabase functions deploy process-event-queue --no-verify-jwt
+   npx supabase functions deploy cron-pix-recovery --no-verify-jwt
    ```
-4. Se o chat não estiver respondendo, injete as variáveis secretas para a função diretamente via CLI:
+4. Configure as variáveis de ambiente das Edge Functions de pagamento:
    ```bash
-   npx supabase secrets set SUPABASE_URL="SUA_URL_AQUI" SUPABASE_ANON_KEY="SUA_CHAVE_AQUI"
+   npx supabase secrets set SUPABASE_URL="SUA_URL_AQUI" SUPABASE_ANON_KEY="SUA_CHAVE_AQUI" SUPABASE_SERVICE_ROLE_KEY="SUA_CHAVE_SERVICE_ROLE"
    ```
 
 *(Para gerar chaves de API da IA, consulte o arquivo `implantação do agente de atendimento de ia.md`).*
