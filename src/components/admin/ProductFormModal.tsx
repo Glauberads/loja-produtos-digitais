@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, ShoppingBag, Zap } from 'lucide-react';
+import { X, Trash2, Save, ShoppingBag, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { SupabaseProduct, ProductInput } from '../../hooks/useProducts';
 

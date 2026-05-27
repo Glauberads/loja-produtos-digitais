@@ -52,7 +52,7 @@ export const SuccessOfferPage: React.FC = () => {
       }
 
       // Buscar offer
-      const { data: offerData, error: offerErr } = await supabase
+      const { data: offerData } = await supabase
         .from('upsell_offers')
         .select('*, upsell_product:products(*)')
         .eq('main_product_id', order.product_id)
