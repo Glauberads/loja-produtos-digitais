@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { DollarSign, Download, Filter, Search } from 'lucide-react';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import { AdminCard } from '../../components/admin/AdminCard';

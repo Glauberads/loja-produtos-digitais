@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Share2, Plus, Copy, Check, Search, Filter } from 'lucide-react';
+import { Share2, Plus, Copy, Search, Filter } from 'lucide-react';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import { AdminCard } from '../../components/admin/AdminCard';
 

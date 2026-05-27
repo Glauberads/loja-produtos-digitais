@@ -44,6 +44,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     // Fetch bump product
     const fetchBump = async () => {
       const { supabase } = await import('../lib/supabase');
+      if (!product) return;
       const { data } = await supabase.from('products').select('*').eq('is_order_bump', true).eq('active', true).neq('id', product.id).maybeSingle();
       if (data) setBumpProduct(data);
     };

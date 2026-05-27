@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Ticket,
   X,
+  Bot,
   MessageSquare,
   Download,
   Share2,
