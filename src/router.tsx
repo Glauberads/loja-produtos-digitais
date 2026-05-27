@@ -18,6 +18,11 @@ import { LogsPage } from './pages/admin/LogsPage';
 import { AdminsPage } from './pages/admin/AdminsPage';
 import { AiSettingsPage } from './pages/admin/AiSettingsPage';
 import { LeadsPage } from './pages/admin/LeadsPage';
+import { SuccessPage } from './pages/SuccessPage';
+import { MembersAreaPage } from './pages/MembersAreaPage';
+import { DeliveryPage } from './pages/admin/DeliveryPage';
+import { AffiliatesPage } from './pages/admin/AffiliatesPage';
+import { CommissionsPage } from './pages/admin/CommissionsPage';
 
 const RootLayout = () => {
   return (
@@ -35,6 +40,14 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <App />,    
+      },
+      {
+        path: '/success',
+        element: <SuccessPage />,
+      },
+      {
+        path: '/minha-area',
+        element: <MembersAreaPage />,
       },
       {
         path: '/admin/login',
@@ -58,6 +71,9 @@ const router = createBrowserRouter([
           { path: 'ai-settings', element: <AiSettingsPage /> },
           { path: 'leads', element: <LeadsPage /> },
           { path: 'logs', element: <LogsPage /> },
+          { path: 'delivery', element: <DeliveryPage /> },
+          { path: 'affiliates', element: <AffiliatesPage /> },
+          { path: 'commissions', element: <CommissionsPage /> },
           { path: '*', element: <Navigate to="dashboard" replace /> },
         ],
       },

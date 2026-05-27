@@ -16,8 +16,10 @@ import {
   ShieldCheck,
   Ticket,
   X,
-  Bot,
-  MessageSquare
+  MessageSquare,
+  Download,
+  Share2,
+  DollarSign
 } from 'lucide-react';
 import { useAdminAuth } from '../../../hooks/useAdminAuth';
 
@@ -35,12 +37,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     { label: 'Leads', icon: MessageSquare, path: '/admin/leads' },
     { label: 'Produtos', icon: Package, path: '/admin/products' },
     { label: 'Cupons', icon: Ticket, path: '/admin/coupons' },
+    { label: 'Entrega Digital', icon: Download, path: '/admin/delivery' },
     { label: 'Marketing', icon: Megaphone, path: '/admin/marketing' },
+    { label: 'Afiliados', icon: Share2, path: '/admin/affiliates' },
     { label: 'Integrações', icon: Network, path: '/admin/integrations' },
   ];
 
   const extrasMenu = [
     { label: 'Pedidos', icon: ShoppingCart, path: '/admin/orders' },
+    { label: 'Comissões', icon: DollarSign, path: '/admin/commissions' },
     { label: 'Clientes', icon: Users, path: '/admin/customers' },
     ...(role === 'super_admin' ? [{ label: 'Administradores', icon: ShieldCheck, path: '/admin/admins' }] : []),
     { label: 'Avaliações', icon: Star, path: '/admin/reviews' },

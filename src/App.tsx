@@ -28,8 +28,10 @@ import { SocialProofPopup } from './components/ui/SocialProofPopup';
 import { RealtimeToast } from './components/ui/RealtimeToast';
 import { FavoritesDrawer } from './components/FavoritesDrawer';
 import { useAnalytics } from './hooks/useAnalytics';
+import { useAffiliateTracking } from './hooks/useAffiliateTracking';
 
 function App() {
+  useAffiliateTracking();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);

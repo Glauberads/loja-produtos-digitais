@@ -1,8 +1,10 @@
 import React from 'react';
-import { X, Star, ShoppingCart, Check, ShieldCheck, Zap, CreditCard, QrCode } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Star, ShoppingCart, Check, ShieldCheck, Zap, QrCode, Loader2, Copy, CheckCircle2, User, Mail, Phone, AlertCircle } from 'lucide-react';
 import type { Product } from '../data/products';
 import { TechIcon } from './TechIcon';
-import { supabase } from '../lib/supabase';
+import { createOrder, captureUTMParams, captureMetaCookies, subscribeToOrderStatus, trackServerEvent } from '../services/payments/paymentService';
+import type { CreateOrderResponse } from '../types/payment';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -15,35 +17,114 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   onClose,
   onAddToCart
 }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState<'overview' | 'features' | 'tech'>('overview');
-  const [checkoutStep, setCheckoutStep] = React.useState<'none' | 'method' | 'pix' | 'success'>('none');
+  const [checkoutStep, setCheckoutStep] = React.useState<'none' | 'form' | 'pix' | 'waiting' | 'success'>('none');
   const [copiedPix, setCopiedPix] = React.useState(false);
+  const [formData, setFormData] = React.useState({ name: '', email: '', phone: '' });
+  const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
+  const [checkoutLoading, setCheckoutLoading] = React.useState(false);
+  const [checkoutError, setCheckoutError] = React.useState<string | null>(null);
+  const [paymentData, setPaymentData] = React.useState<CreateOrderResponse | null>(null);
+  const [bumpProduct, setBumpProduct] = React.useState<any>(null);
+  const [isBumpSelected, setIsBumpSelected] = React.useState(false);
+  const unsubscribeRef = React.useRef<(() => void) | null>(null);
+
+  const hasTrackedInit = React.useRef(false);
+
+  React.useEffect(() => {
+    if (product && !hasTrackedInit.current) {
+      hasTrackedInit.current = true;
+      trackServerEvent('ViewContent', {
+        product_id: product.id,
+        amount: product.price,
+      });
+    }
+
+    // Fetch bump product
+    const fetchBump = async () => {
+      const { supabase } = await import('../lib/supabase');
+      const { data } = await supabase.from('products').select('*').eq('is_order_bump', true).eq('active', true).neq('id', product.id).maybeSingle();
+      if (data) setBumpProduct(data);
+    };
+    fetchBump();
+  }, [product]);
 
   if (!product) return null;
 
-  const handleCopyPix = () => {
-    navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136e3bb77a1-b64a-48b8-b5a7-a4d6e78cec8f5204000053039865406297.005802BR5915NexusSaaS%20Store6009SAO%20PAULO62070503***6304D1B2");
-    setCopiedPix(true);
-    setTimeout(() => setCopiedPix(false), 2000);
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.name.trim() || formData.name.trim().length < 3) errors.name = 'Nome completo obrigatório';
+    if (!formData.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(formData.email)) errors.email = 'E-mail válido obrigatório';
+    if (!formData.phone.trim() || formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'WhatsApp obrigatório (com DDD)';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleSimulatePayment = async () => {
+  const handleGeneratePix = async () => {
+    if (!validateForm()) return;
+    setCheckoutLoading(true);
+    setCheckoutError(null);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .insert([{
-          product_id: product.id,
-          product_name: product.name,
-          price: product.price,
-          payment_method: checkoutStep === 'pix' ? 'PIX' : 'CARD',
-          status: 'approved'
-        }]);
+      // Form submitted, track as Lead
+      trackServerEvent('Lead', {
+        customer_email: formData.email.trim().toLowerCase(),
+        customer_phone: formData.phone.trim(),
+        product_id: product.id,
+      });
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Erro ao registrar pedido individual no Supabase:', err);
+      const utms = captureUTMParams();
+      const meta = captureMetaCookies();
+      const eventId = crypto.randomUUID();
+
+      const result = await createOrder({
+        product_id: product.id,
+        customer_name: formData.name.trim(),
+        customer_email: formData.email.trim().toLowerCase(),
+        customer_phone: formData.phone.trim(),
+        gateway: 'mercadopago',
+        event_id: eventId,
+        order_bump_id: isBumpSelected && bumpProduct ? bumpProduct.id : undefined,
+        ...utms,
+        ...meta,
+      });
+
+      setPaymentData(result);
+      setCheckoutStep(result.pix_code ? 'pix' : 'waiting');
+
+      // Subscrever ao Realtime para mudança de status
+      const unsubscribe = subscribeToOrderStatus(result.order_id, (updatedOrder) => {
+        if (updatedOrder.status === 'approved') {
+          setCheckoutStep('success');
+          unsubscribeRef.current?.();
+          // Redirecionar para /success após 2s
+          setTimeout(() => {
+            navigate(`/success?order_id=${result.order_id}`);
+          }, 2000);
+        } else if (updatedOrder.status === 'failed' || updatedOrder.status === 'expired') {
+          setCheckoutError('Pagamento falhou. Tente novamente.');
+          setCheckoutStep('form');
+        }
+      });
+      unsubscribeRef.current = unsubscribe;
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Erro ao gerar PIX. Tente novamente.');
+    } finally {
+      setCheckoutLoading(false);
     }
-    setCheckoutStep('success');
+  };
+
+  const handleCopyPix = () => {
+    if (!paymentData?.pix_code) return;
+    navigator.clipboard.writeText(paymentData.pix_code);
+    setCopiedPix(true);
+    setTimeout(() => setCopiedPix(false), 2500);
+  };
+
+  // Cleanup Realtime ao fechar
+  const handleClose = () => {
+    unsubscribeRef.current?.();
+    onClose();
   };
 
   return (
@@ -51,7 +132,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       
       {/* Background Overlay */}
       <div 
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute inset-0 bg-brand-black/90 backdrop-blur-md transition-opacity duration-300"
       ></div>
 
@@ -60,7 +141,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         
         {/* Close Button */}
         <button 
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 z-30 p-2 rounded-full bg-brand-black/60 border border-white/5 text-white/70 hover:text-white hover:border-brand-orange/30 hover:bg-brand-black transition-all duration-300"
         >
           <X size={18} />
@@ -206,7 +287,13 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                     Adicionar
                   </button>
                   <button 
-                    onClick={() => setCheckoutStep('method')}
+                    onClick={() => {
+                      setCheckoutStep('form')
+                      trackServerEvent('InitiateCheckout', {
+                        product_id: product.id,
+                        amount: product.price,
+                      })
+                    }}
                     className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
                   >
                     Comprar Agora
@@ -217,141 +304,203 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             </div>
           </>
         ) : (
-          // CHECKOUT FLOW SIMULATION
+          // CHECKOUT FLOW REAL
           <div className="w-full p-8 flex flex-col justify-between items-center text-center max-h-[85vh] overflow-y-auto">
             <div className="w-full flex items-center justify-between pb-4 border-b border-white/5 mb-6 text-left">
               <div>
                 <h3 className="font-bold text-lg text-white">Checkout Seguro</h3>
-                <p className="text-xs text-white/45 font-mono">Pedido: {product.id.toUpperCase()}-2026</p>
+                <p className="text-xs text-white/45 font-mono">{product.name} · R$ {typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
               </div>
               {checkoutStep !== 'success' && (
                 <button 
                   onClick={() => setCheckoutStep('none')}
                   className="text-xs text-brand-orange font-bold hover:underline"
                 >
-                  Voltar aos Detalhes
+                  Voltar
                 </button>
               )}
             </div>
 
-            {checkoutStep === 'method' && (
-              <div className="space-y-6 max-w-md w-full py-6">
-                <p className="text-sm text-white/70">Escolha o método de pagamento simulado:</p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Pix Button */}
-                  <button
-                    onClick={() => setCheckoutStep('pix')}
-                    className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-brand-black/60 border border-white/5 hover:border-brand-orange/30 hover:bg-brand-black transition-all duration-300 group"
-                  >
-                    <div className="p-3 rounded-full bg-brand-orange/10 text-brand-orange group-hover:scale-115 transition-transform duration-300">
-                      <QrCode size={24} />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">PIX Simulado</h4>
-                      <p className="text-[10px] text-white/40 mt-0.5">Liberação imediata</p>
-                    </div>
-                  </button>
+            {/* ── ETAPA 1: Formulário de dados ────────────────── */}
+            {checkoutStep === 'form' && (
+              <div className="space-y-5 max-w-sm w-full py-2">
+                <p className="text-xs text-white/50 text-left">Seus dados para receber o acesso:</p>
 
-                  {/* Cartão Button */}
-                  <button
-                    onClick={handleSimulatePayment}
-                    className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-brand-black/60 border border-white/5 hover:border-brand-orange/30 hover:bg-brand-black transition-all duration-300 group"
-                  >
-                    <div className="p-3 rounded-full bg-brand-orange/10 text-brand-orange group-hover:scale-115 transition-transform duration-300">
-                      <CreditCard size={24} />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">Cartão de Crédito</h4>
-                      <p className="text-[10px] text-white/40 mt-0.5">Liberação simulada</p>
-                    </div>
-                  </button>
+                {/* Nome */}
+                <div className="text-left">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Nome Completo</label>
+                  <div className="relative">
+                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={formData.name}
+                      onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.name ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
+                    />
+                  </div>
+                  {formErrors.name && <p className="text-[10px] text-red-400 mt-1">{formErrors.name}</p>}
                 </div>
 
-                <div className="pt-4 text-xs text-white/40 flex items-center justify-center gap-1.5">
-                  <ShieldCheck size={14} className="text-emerald-500" />
-                  Ambiente de demonstração criptografado
+                {/* Email */}
+                <div className="text-left">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">E-mail</label>
+                  <div className="relative">
+                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                    <input
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={formData.email}
+                      onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.email ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
+                    />
+                  </div>
+                  {formErrors.email && <p className="text-[10px] text-red-400 mt-1">{formErrors.email}</p>}
+                </div>
+
+                {/* WhatsApp */}
+                <div className="text-left">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">WhatsApp (com DDD)</label>
+                  <div className="relative">
+                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                    <input
+                      type="tel"
+                      placeholder="(11) 99999-9999"
+                      value={formData.phone}
+                      onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.phone ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
+                    />
+                  </div>
+                  {formErrors.phone && <p className="text-[10px] text-red-400 mt-1">{formErrors.phone}</p>}
+                </div>
+
+                {checkoutError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                    <AlertCircle size={13} className="shrink-0" />
+                    {checkoutError}
+                  </div>
+                )}
+
+                {/* Order Bump Section */}
+                {bumpProduct && (
+                  <div 
+                    className={`mt-4 p-4 rounded-xl border ${isBumpSelected ? 'border-brand-orange bg-brand-orange/5' : 'border-white/10 bg-white/5'} transition-all cursor-pointer hover:border-brand-orange/50`}
+                    onClick={() => {
+                      const newState = !isBumpSelected;
+                      setIsBumpSelected(newState);
+                      trackServerEvent(newState ? 'OrderBumpSelected' : 'OrderBumpRemoved', {
+                        product_id: product.id,
+                        bump_product_id: bumpProduct.id
+                      });
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 ${isBumpSelected ? 'bg-brand-orange border-brand-orange' : 'border-white/30'}`}>
+                        {isBumpSelected && <Check size={14} className="text-white" />}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-white flex items-center gap-2">
+                          🚀 Leve também com desconto único
+                        </p>
+                        <p className="text-[11px] text-white/60 mt-1 leading-relaxed">{bumpProduct.name}</p>
+                        <p className="text-xs font-mono font-bold text-emerald-400 mt-1">+ R$ {bumpProduct.bump_price || bumpProduct.price}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleGeneratePix}
+                  disabled={checkoutLoading}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {checkoutLoading ? <><Loader2 size={15} className="animate-spin" /> Gerando PIX...</> : <><QrCode size={15} /> Gerar PIX de R$ {isBumpSelected && bumpProduct ? (Number(product.price) + Number(bumpProduct.bump_price || bumpProduct.price)).toFixed(2) : Number(product.price).toFixed(2)}</>}
+                </button>
+
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/30">
+                  <ShieldCheck size={11} className="text-emerald-500" />
+                  Pagamento seguro via Mercado Pago
                 </div>
               </div>
             )}
 
-            {checkoutStep === 'pix' && (
-              <div className="space-y-6 max-w-sm w-full py-4 flex flex-col items-center">
-                <p className="text-xs text-white/70">Escaneie o QR Code abaixo ou copie a chave Pix Copia e Cola para simular a compra de <strong className="text-brand-orange">{product.name}</strong> por <strong className="text-white">R$ {product.price}</strong>:</p>
-                
-                {/* SVG QR Code Simulation */}
-                <div className="p-4 rounded-2xl bg-white border border-brand-orange/30 shadow-neon-orange relative group">
-                  <svg className="w-44 h-44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100" height="100" rx="6" fill="white"/>
-                    {/* QR Code Grid simulated design */}
-                    <rect x="5" y="5" width="25" height="25" fill="#050505"/>
-                    <rect x="10" y="10" width="15" height="15" fill="white"/>
-                    <rect x="70" y="5" width="25" height="25" fill="#050505"/>
-                    <rect x="75" y="10" width="15" height="15" fill="white"/>
-                    <rect x="5" y="70" width="25" height="25" fill="#050505"/>
-                    <rect x="10" y="75" width="15" height="15" fill="white"/>
-                    {/* Small inner design details */}
-                    <rect x="35" y="15" width="10" height="5" fill="#050505"/>
-                    <rect x="40" y="25" width="15" height="10" fill="#050505"/>
-                    <rect x="60" y="35" width="10" height="10" fill="#050505"/>
-                    <rect x="25" y="45" width="20" height="15" fill="#050505"/>
-                    <rect x="50" y="65" width="25" height="20" fill="#050505"/>
-                    <rect x="70" y="45" width="15" height="15" fill="#050505"/>
-                    <rect x="5" y="40" width="10" height="10" fill="#050505"/>
-                    <rect x="85" y="75" width="10" height="10" fill="#050505"/>
-                  </svg>
-                  {/* Neon orange glowing center badge */}
-                  <div className="absolute inset-0 m-auto w-8 h-8 rounded-lg bg-brand-orange border border-white flex items-center justify-center text-white">
-                    <Zap size={14} className="animate-pulse" />
-                  </div>
+            {/* ── ETAPA 2: QR Code PIX real ───────────────────── */}
+            {checkoutStep === 'pix' && paymentData && (
+              <div className="space-y-5 max-w-sm w-full py-2 flex flex-col items-center">
+                <div className="text-center">
+                  <p className="text-sm font-bold text-white mb-1">Pague o PIX abaixo</p>
+                  <p className="text-xs text-white/40">R$ {Number(paymentData.amount).toFixed(2)} · {paymentData.product_name}</p>
                 </div>
 
-                <div className="w-full space-y-2">
-                  <button
-                    onClick={handleCopyPix}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-black border border-white/10 hover:border-brand-orange/30 text-xs font-semibold text-white transition-all duration-300"
-                  >
-                    {copiedPix ? 'Chave Copiada!' : 'Copiar Código Copia e Cola'}
-                  </button>
-                  <button
-                    onClick={handleSimulatePayment}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg transition-all duration-300"
-                  >
-                    Simular Pagamento Aprovado
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {checkoutStep === 'success' && (
-              <div className="space-y-6 max-w-md w-full py-8 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500 animate-bounce">
-                  <ShieldCheck size={36} />
-                </div>
-                <div>
-                  <h4 className="text-xl font-bold text-white">Pagamento Aprovado!</h4>
-                  <p className="text-xs text-white/50 mt-1">Sua compra fictícia foi processada com sucesso.</p>
-                </div>
-                
-                <div className="p-5 rounded-2xl bg-brand-black/40 border border-white/5 w-full text-left space-y-3">
-                  <h5 className="text-xs font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">Detalhes de Acesso</h5>
-                  <p className="text-xs text-white/70 leading-relaxed">
-                    Em uma loja real, você receberia agora mesmo o link do GitHub para clonar o repositório ou um arquivo compactado `.zip` contendo todo o código-fonte whitelabel configurado.
-                  </p>
-                  <div className="p-3 rounded-xl bg-brand-orange/10 border border-brand-orange/20 text-[11px] text-brand-orange font-mono">
-                    Token de Licença: TX-NEXUS-92718362
-                  </div>
+                {/* QR Code real (base64) ou placeholder */}
+                <div className="p-3 rounded-2xl bg-white border-2 border-brand-orange/30 shadow-neon-orange">
+                  {paymentData.pix_qr_image ? (
+                    <img src={paymentData.pix_qr_image} alt="QR Code PIX" className="w-44 h-44 object-contain" />
+                  ) : (
+                    <div className="w-44 h-44 flex items-center justify-center">
+                      <QrCode size={80} className="text-gray-400" />
+                    </div>
+                  )}
                 </div>
 
                 <button
-                  onClick={() => {
-                    setCheckoutStep('none');
-                    onClose();
-                  }}
-                  className="w-full px-5 py-3 rounded-xl bg-brand-darkGray border border-white/10 hover:border-brand-orange/30 text-xs font-semibold text-white transition-all duration-300"
+                  onClick={handleCopyPix}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-black border border-white/10 hover:border-brand-orange/30 text-xs font-semibold text-white transition-all duration-300"
                 >
-                  Concluir e Voltar ao Catálogo
+                  {copiedPix ? <><CheckCircle2 size={13} className="text-green-400" /> Copiado!</> : <><Copy size={13} /> Copiar Código Pix Copia e Cola</>}
                 </button>
+
+                {/* Indicador de aguardando */}
+                <div className="w-full p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 flex items-center gap-3">
+                  <Loader2 size={14} className="text-yellow-400 animate-spin shrink-0" />
+                  <div className="text-left">
+                    <p className="text-[11px] font-bold text-yellow-400">Aguardando pagamento...</p>
+                    <p className="text-[10px] text-white/30">A liberação é automática após confirmação</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── ETAPA 3: Aguardando (sem QR Code do MP) ─────── */}
+            {checkoutStep === 'waiting' && paymentData && (
+              <div className="space-y-5 max-w-sm w-full py-6 flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                  <Loader2 size={28} className="text-yellow-400 animate-spin" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Processando pedido...</p>
+                  <p className="text-xs text-white/40 mt-1">Pedido criado. Redirecionando para pagamento...</p>
+                </div>
+                {paymentData.payment_url && (
+                  <a
+                    href={paymentData.payment_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white transition-all"
+                  >
+                    Ir para o pagamento →
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* ── ETAPA 4: Sucesso ─────────────────────────────── */}
+            {checkoutStep === 'success' && (
+              <div className="space-y-6 max-w-md w-full py-8 flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500">
+                    <ShieldCheck size={40} />
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-green-500/10 animate-ping" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-black text-white">Pagamento Aprovado! 🎉</h4>
+                  <p className="text-xs text-white/50 mt-1">Redirecionando para sua área de acesso...</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/30">
+                  <Loader2 size={12} className="animate-spin" />
+                  Preparando seu acesso...
+                </div>
               </div>
             )}
 
