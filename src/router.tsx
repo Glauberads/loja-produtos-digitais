@@ -23,6 +23,7 @@ import { MembersAreaPage } from './pages/MembersAreaPage';
 import { DeliveryPage } from './pages/admin/DeliveryPage';
 import { AffiliatesPage } from './pages/admin/AffiliatesPage';
 import { CommissionsPage } from './pages/admin/CommissionsPage';
+import { SuccessOfferPage } from './pages/SuccessOfferPage';
 
 const RootLayout = () => {
   return (
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: '/success',
         element: <SuccessPage />,
+      },
+      {
+        path: '/success-offer',
+        element: <SuccessOfferPage />,
       },
       {
         path: '/minha-area',

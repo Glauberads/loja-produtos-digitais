@@ -139,7 +139,10 @@ serve(async (req: Request) => {
       trace_id: traceId
     })
 
-    // 2. Síncrono: Liberar Acesso e Token
+    const isUpsell = order.order_type === 'upsell'
+    const isBump = order.order_type === 'bump'
+
+    // 2. Fluxo de Entrega (Aprovação)
     const { data: customerData } = await supabase.from('customers').select('id').eq('email', order.customer_email).maybeSingle()
     const customerId = customerData?.id
 
@@ -182,6 +185,12 @@ serve(async (req: Request) => {
       if (order.order_bump_id) {
          await supabase.from('audit_logs').insert([
            { tenant_id: tenantId, user_id: customerId, action: 'access_granted_bump', entity: 'product_access', details: { bump_product_id: order.order_bump_id }, trace_id: traceId }
+         ])
+      }
+
+      if (isUpsell) {
+         await supabase.from('audit_logs').insert([
+           { tenant_id: tenantId, user_id: customerId, action: 'upsell_purchase_granted', entity: 'product_access', details: { parent_order_id: order.parent_order_id }, trace_id: traceId }
          ])
       }
 

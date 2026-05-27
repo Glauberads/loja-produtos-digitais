@@ -94,13 +94,26 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       setCheckoutStep(result.pix_code ? 'pix' : 'waiting');
 
       // Subscrever ao Realtime para mudança de status
-      const unsubscribe = subscribeToOrderStatus(result.order_id, (updatedOrder) => {
+      const unsubscribe = subscribeToOrderStatus(result.order_id, async (updatedOrder) => {
         if (updatedOrder.status === 'approved') {
           setCheckoutStep('success');
           unsubscribeRef.current?.();
-          // Redirecionar para /success após 2s
+          
+          // Checar se existe oferta de upsell
+          const { supabase } = await import('../lib/supabase');
+          const { data: upsellOffer } = await supabase
+            .from('upsell_offers')
+            .select('id')
+            .eq('main_product_id', product.id)
+            .eq('active', true)
+            .maybeSingle();
+
           setTimeout(() => {
-            navigate(`/success?order_id=${result.order_id}`);
+            if (upsellOffer) {
+              navigate(`/success-offer?order_id=${result.order_id}`);
+            } else {
+              navigate(`/success?order_id=${result.order_id}`);
+            }
           }, 2000);
         } else if (updatedOrder.status === 'failed' || updatedOrder.status === 'expired') {
           setCheckoutError('Pagamento falhou. Tente novamente.');
