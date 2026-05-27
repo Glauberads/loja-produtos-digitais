@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Package, Smartphone, Monitor, Save, RefreshCcw, Loader2, Link2, Palette, Type, Layout } from 'lucide-react';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import { AdminCard } from '../../components/admin/AdminCard';
-import { useMemberSettings, MemberAreaSettings } from '../../hooks/useMemberSettings';
+import { useMemberSettings } from '../../hooks/useMemberSettings';
+import type { MemberAreaSettings } from '../../hooks/useMemberSettings';
 
 export const MemberAreaSettingsPage: React.FC = () => {
   const { settings: initialSettings, saveSettings, loading, defaultSettings } = useMemberSettings();

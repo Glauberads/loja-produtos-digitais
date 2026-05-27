@@ -19,7 +19,7 @@ const ProductAccessCard: React.FC<{
   buttonText?: string;
   primaryColor?: string;
   secondaryColor?: string;
-}> = ({ access, onDownload, downloading, buttonText = 'Acessar Produto', primaryColor = '#FF6A00', secondaryColor = '#3B82F6' }) => {
+}> = ({ access, onDownload, downloading, buttonText = 'Acessar Produto', primaryColor = '#FF6A00' }) => {
   const product = access.products as any;
   const order = access.orders as any;
   const isActive = access.active;
