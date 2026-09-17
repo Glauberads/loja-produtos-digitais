@@ -11,10 +11,12 @@ export interface CreateOrderParams {
   customer_name: string
   customer_email: string
   customer_phone?: string
+  customer_document?: string
   gateway?: PaymentGateway
   coupon_code?: string
   // Order Bump
   order_bump_id?: string
+  order_bump_ids?: string[]
   order_bump_amount?: number
   // UTM
   utm_source?: string
@@ -128,6 +130,7 @@ export interface CheckoutFormData {
   name: string
   email: string
   phone: string
+  cpf: string
 }
 
 export interface UTMData {

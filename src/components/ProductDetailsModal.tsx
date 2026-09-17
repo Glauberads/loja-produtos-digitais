@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Star, ShoppingCart, Check, ShieldCheck, Zap, QrCode, Loader2, Copy, CheckCircle2, User, Mail, Phone, AlertCircle } from 'lucide-react';
+import { X, Star, ShoppingCart, Check, ShieldCheck, Zap, QrCode, Loader2, Copy, CheckCircle2, User, AlertCircle } from 'lucide-react';
 import type { Product } from '../data/products';
 import { TechIcon } from './TechIcon';
 import { createOrder, captureUTMParams, captureMetaCookies, subscribeToOrderStatus, trackServerEvent } from '../services/payments/paymentService';
@@ -21,13 +21,14 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [activeTab, setActiveTab] = React.useState<'overview' | 'features' | 'tech'>('overview');
   const [checkoutStep, setCheckoutStep] = React.useState<'none' | 'form' | 'pix' | 'waiting' | 'success'>('none');
   const [copiedPix, setCopiedPix] = React.useState(false);
-  const [formData, setFormData] = React.useState({ name: '', email: '', phone: '' });
+  const [formData, setFormData] = React.useState({ name: '', email: '', phone: '', cpf: '' });
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
   const [checkoutLoading, setCheckoutLoading] = React.useState(false);
   const [checkoutError, setCheckoutError] = React.useState<string | null>(null);
   const [paymentData, setPaymentData] = React.useState<CreateOrderResponse | null>(null);
-  const [bumpProduct, setBumpProduct] = React.useState<any>(null);
-  const [isBumpSelected, setIsBumpSelected] = React.useState(false);
+  const [bumpProducts, setBumpProducts] = React.useState<any[]>([]);
+  const [selectedBumpIds, setSelectedBumpIds] = React.useState<string[]>([]);
+  const [paymentMethod, setPaymentMethod] = React.useState<'pix' | 'card'>('pix');
   const unsubscribeRef = React.useRef<(() => void) | null>(null);
 
   const hasTrackedInit = React.useRef(false);
@@ -41,14 +42,14 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       });
     }
 
-    // Fetch bump product
-    const fetchBump = async () => {
+    // Fetch bump products
+    const fetchBumps = async () => {
       const { supabase } = await import('../lib/supabase');
       if (!product) return;
-      const { data } = await supabase.from('products').select('*').eq('is_order_bump', true).eq('active', true).neq('id', product.id).maybeSingle();
-      if (data) setBumpProduct(data);
+      const { data } = await supabase.from('products').select('*').eq('is_order_bump', true).eq('active', true).neq('id', product.id).order('created_at', { ascending: false });
+      if (data) setBumpProducts(data);
     };
-    fetchBump();
+    fetchBumps();
   }, [product]);
 
   if (!product) return null;
@@ -58,6 +59,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     if (!formData.name.trim() || formData.name.trim().length < 3) errors.name = 'Nome completo obrigatório';
     if (!formData.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(formData.email)) errors.email = 'E-mail válido obrigatório';
     if (!formData.phone.trim() || formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'WhatsApp obrigatório (com DDD)';
+    if (!formData.cpf.trim() || formData.cpf.replace(/\D/g, '').length < 11) errors.cpf = 'CPF/CNPJ obrigatório';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -83,8 +85,9 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         customer_name: formData.name.trim(),
         customer_email: formData.email.trim().toLowerCase(),
         customer_phone: formData.phone.trim(),
+        customer_document: formData.cpf.trim().replace(/\D/g, ''),
         event_id: eventId,
-        order_bump_id: isBumpSelected && bumpProduct ? bumpProduct.id : undefined,
+        order_bump_ids: selectedBumpIds,
         ...utms,
         ...meta,
       });
@@ -336,103 +339,177 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
             {/* ── ETAPA 1: Formulário de dados ────────────────── */}
             {checkoutStep === 'form' && (
-              <div className="space-y-5 max-w-sm w-full py-2">
-                <p className="text-xs text-white/50 text-left">Seus dados para receber o acesso:</p>
-
-                {/* Nome */}
-                <div className="text-left">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Nome Completo</label>
-                  <div className="relative">
-                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-                    <input
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={formData.name}
-                      onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.name ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
-                    />
+              <div className="w-full flex flex-col md:flex-row gap-8 text-left">
+                {/* COLUNA ESQUERDA */}
+                <div className="w-full md:w-[65%] space-y-6">
+                  
+                  {/* Produto Principal Header */}
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-orange/20 to-brand-neonOrange/20 border border-brand-orange/30 flex items-center justify-center shrink-0">
+                       <TechIcon name={product.iconName} className="text-brand-orange" size={24} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">{product.name}</h4>
+                      <p className="text-xs text-white/50">{product.category}</p>
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-lg font-black text-white font-mono">R$ {Number(product.price).toFixed(2)}</p>
+                    </div>
                   </div>
-                  {formErrors.name && <p className="text-[10px] text-red-400 mt-1">{formErrors.name}</p>}
-                </div>
 
-                {/* Email */}
-                <div className="text-left">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">E-mail</label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-                    <input
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={formData.email}
-                      onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.email ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
-                    />
-                  </div>
-                  {formErrors.email && <p className="text-[10px] text-red-400 mt-1">{formErrors.email}</p>}
-                </div>
-
-                {/* WhatsApp */}
-                <div className="text-left">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">WhatsApp (com DDD)</label>
-                  <div className="relative">
-                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-                    <input
-                      type="tel"
-                      placeholder="(11) 99999-9999"
-                      value={formData.phone}
-                      onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                      className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.phone ? 'border-red-500/50 focus:border-red-500/70' : 'border-white/10 focus:border-brand-orange/50'}`}
-                    />
-                  </div>
-                  {formErrors.phone && <p className="text-[10px] text-red-400 mt-1">{formErrors.phone}</p>}
-                </div>
-
-                {checkoutError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-                    <AlertCircle size={13} className="shrink-0" />
-                    {checkoutError}
-                  </div>
-                )}
-
-                {/* Order Bump Section */}
-                {bumpProduct && (
-                  <div 
-                    className={`mt-4 p-4 rounded-xl border ${isBumpSelected ? 'border-brand-orange bg-brand-orange/5' : 'border-white/10 bg-white/5'} transition-all cursor-pointer hover:border-brand-orange/50`}
-                    onClick={() => {
-                      const newState = !isBumpSelected;
-                      setIsBumpSelected(newState);
-                      trackServerEvent(newState ? 'OrderBumpSelected' : 'OrderBumpRemoved', {
-                        product_id: product.id,
-                        bump_product_id: bumpProduct.id
-                      });
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 ${isBumpSelected ? 'bg-brand-orange border-brand-orange' : 'border-white/30'}`}>
-                        {isBumpSelected && <Check size={14} className="text-white" />}
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-bold text-white flex items-center gap-2">
-                          🚀 Leve também com desconto único
-                        </p>
-                        <p className="text-[11px] text-white/60 mt-1 leading-relaxed">{bumpProduct.name}</p>
-                        <p className="text-xs font-mono font-bold text-emerald-400 mt-1">+ R$ {bumpProduct.bump_price || bumpProduct.price}</p>
+                  {/* Seus Dados */}
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><User size={16} className="text-brand-orange"/> Seus dados</h4>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="text-left col-span-1 md:col-span-2">
+                          <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Qual é o seu nome completo?</label>
+                          <input type="text" placeholder="Nome da Silva" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className={`w-full bg-brand-darkGray border rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.name ? 'border-red-500/50' : 'border-white/10 focus:border-brand-orange/50'}`} />
+                        </div>
+                        <div className="text-left col-span-1 md:col-span-2">
+                          <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Qual é o seu e-mail?</label>
+                          <input type="email" placeholder="Digite o e-mail que receberá o produto" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} className={`w-full bg-brand-darkGray border rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.email ? 'border-red-500/50' : 'border-white/10 focus:border-brand-orange/50'}`} />
+                        </div>
+                        <div className="text-left">
+                          <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Qual é o número do seu celular?</label>
+                          <input type="tel" placeholder="(11) 99999-9999" value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} className={`w-full bg-brand-darkGray border rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.phone ? 'border-red-500/50' : 'border-white/10 focus:border-brand-orange/50'}`} />
+                        </div>
+                        <div className="text-left">
+                          <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1.5">Qual é o seu CPF?</label>
+                          <input type="text" placeholder="000.000.000-00" value={formData.cpf} onChange={e => setFormData(p => ({ ...p, cpf: e.target.value }))} className={`w-full bg-brand-darkGray border rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all ${formErrors.cpf ? 'border-red-500/50' : 'border-white/10 focus:border-brand-orange/50'}`} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                )}
 
-                <button
-                  onClick={handleGeneratePix}
-                  disabled={checkoutLoading}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-brand-orange to-brand-neonOrange text-sm font-bold text-white shadow-neon-orange hover:shadow-neon-orange-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {checkoutLoading ? <><Loader2 size={15} className="animate-spin" /> Gerando PIX...</> : <><QrCode size={15} /> Gerar PIX de R$ {isBumpSelected && bumpProduct ? (Number(product.price) + Number(bumpProduct.bump_price || bumpProduct.price)).toFixed(2) : Number(product.price).toFixed(2)}</>}
-                </button>
+                  {/* Order Bumps */}
+                  {bumpProducts.length > 0 && (
+                    <div className="p-5 rounded-2xl bg-gradient-to-r from-red-500/5 to-orange-500/5 border border-red-500/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-black text-red-400 flex items-center gap-2">
+                          <Zap size={16} /> OPORTUNIDADE ÚNICA
+                          <span className="text-xs font-medium text-white/50 ml-2 hidden sm:inline-block">Adicione ofertas especiais ao seu pedido!</span>
+                        </h4>
+                      </div>
+                      <div className="space-y-3">
+                        {bumpProducts.map(bump => (
+                          <div 
+                            key={bump.id}
+                            className={`flex items-start gap-3 p-4 rounded-xl border ${selectedBumpIds.includes(bump.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-white/10 bg-white/5'} cursor-pointer hover:border-brand-orange/30 transition-all`}
+                            onClick={() => {
+                              setSelectedBumpIds(prev => prev.includes(bump.id) ? prev.filter(id => id !== bump.id) : [...prev, bump.id]);
+                            }}
+                          >
+                            <div className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center shrink-0 ${selectedBumpIds.includes(bump.id) ? 'bg-brand-orange border-brand-orange' : 'border-white/30'}`}>
+                              {selectedBumpIds.includes(bump.id) && <Check size={14} className="text-white" />}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-bold text-white">Aproveite e leve também: {bump.name}</p>
+                              <p className="text-[11px] text-white/50 mt-1 line-clamp-2">{bump.short_description || bump.longDescription || 'Adicione este incrível produto ao seu carrinho por um valor exclusivo.'}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs text-white/30 line-through">De R$ {bump.price}</span>
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white">-70%</span>
+                                <span className="text-sm font-black text-green-400">R$ {bump.bump_price || bump.price}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/30">
-                  <ShieldCheck size={11} className="text-emerald-500" />
-                  Pagamento 100% seguro e criptografado
+                  {/* Payment Method */}
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><ShoppingCart size={16} className="text-brand-orange"/> Escolha a forma de pagamento</h4>
+                    
+                    <div className="flex items-center gap-2 mb-4 p-1 rounded-xl bg-brand-darkGray border border-white/5 w-full sm:w-fit overflow-x-auto">
+                      <button 
+                        onClick={() => setPaymentMethod('pix')}
+                        className={`relative px-6 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${paymentMethod === 'pix' ? 'bg-white/10 text-white shadow-lg border border-white/5' : 'text-white/40 hover:text-white'}`}
+                      >
+                        <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">PIX</span>
+                        PIX
+                      </button>
+                      <button 
+                        onClick={() => setPaymentMethod('card')}
+                        className={`px-6 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${paymentMethod === 'card' ? 'bg-white/10 text-white shadow-lg border border-white/5' : 'text-white/40 hover:text-white'}`}
+                      >
+                        Cartão de Crédito
+                      </button>
+                    </div>
+
+                    {paymentMethod === 'pix' && (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                              <QrCode size={20} className="text-green-500" />
+                           </div>
+                           <p className="text-[11px] text-white/60">Aprovação imediata. O código PIX será gerado após clicar em pagar.</p>
+                        </div>
+                        
+                        {checkoutError && (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                            <AlertCircle size={13} className="shrink-0" />
+                            {checkoutError}
+                          </div>
+                        )}
+
+                        <button
+                          onClick={handleGeneratePix}
+                          disabled={checkoutLoading}
+                          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-green-500 hover:bg-green-600 text-sm font-black text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]"
+                        >
+                          {checkoutLoading ? <><Loader2 size={16} className="animate-spin" /> Processando...</> : <><ShieldCheck size={16} /> PAGAR AGORA</>}
+                        </button>
+                      </div>
+                    )}
+                    {paymentMethod === 'card' && (
+                      <div className="py-6 text-center">
+                        <p className="text-sm text-white/50">Integração de cartão de crédito em breve.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* COLUNA DIREITA */}
+                <div className="w-full md:w-[35%]">
+                  <div className="sticky top-6 space-y-4">
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                      <h4 className="text-sm font-bold text-white mb-4 border-b border-white/10 pb-3">Resumo da compra</h4>
+                      <div className="space-y-3 text-xs">
+                        <div className="flex justify-between text-white/80">
+                          <span>{product.name}</span>
+                          <span className="font-mono">R$ {Number(product.price).toFixed(2)}</span>
+                        </div>
+                        {selectedBumpIds.map(id => {
+                          const b = bumpProducts.find(x => x.id === id);
+                          if (!b) return null;
+                          return (
+                            <div key={b.id} className="flex justify-between text-white/80">
+                              <span className="truncate pr-4">{b.name}</span>
+                              <span className="font-mono text-green-400 whitespace-nowrap">+ R$ {Number(b.bump_price || b.price).toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
+                        <div className="pt-3 border-t border-white/10 flex justify-between items-center">
+                          <span className="text-sm font-bold text-white">Total a pagar</span>
+                          <span className="text-xl font-black text-green-400 font-mono">
+                            R$ {(
+                              Number(product.price) + 
+                              selectedBumpIds.reduce((acc, id) => {
+                                const b = bumpProducts.find(x => x.id === id);
+                                return acc + Number(b?.bump_price || b?.price || 0);
+                              }, 0)
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-center gap-1.5 text-[10px] text-white/40">
+                        <ShieldCheck size={12} className="text-emerald-500" />
+                        Compra segura e criptografada
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

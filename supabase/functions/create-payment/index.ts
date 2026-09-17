@@ -20,6 +20,7 @@ interface CreatePaymentRequest {
   customer_name: string
   customer_email: string
   customer_phone?: string
+  customer_document?: string // CPF/CNPJ informado no checkout
   gateway?: string // opcional: apenas uma dica, o gateway ativo é resolvido no servidor
   coupon_code?: string
   // UTM Tracking
@@ -33,7 +34,8 @@ interface CreatePaymentRequest {
   fbc?: string
   event_id?: string // UUID para deduplicação Pixel vs CAPI
   affiliate_code?: string
-  order_bump_id?: string
+  order_bump_id?: string // legado: um único bump (ainda suportado)
+  order_bump_ids?: string[] // novo: múltiplos bumps selecionados no checkout
 }
 
 // Campos obrigatórios por gateway para considerá-lo "conectado"
@@ -93,8 +95,15 @@ serve(async (req: Request) => {
       product_id, customer_name, customer_email, customer_phone,
       gateway: requestedGateway, coupon_code,
       utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-      fbp, fbc, event_id, affiliate_code, order_bump_id
+      fbp, fbc, event_id, affiliate_code, order_bump_id, order_bump_ids, customer_document
     } = body
+
+    // Normaliza a lista de bumps: aceita tanto o campo antigo (order_bump_id,
+    // um único item) quanto o novo (order_bump_ids, array) para não quebrar
+    // integrações existentes.
+    const requestedBumpIds: string[] = Array.isArray(order_bump_ids) && order_bump_ids.length > 0
+      ? order_bump_ids
+      : (order_bump_id ? [order_bump_id] : [])
 
     // Resolve o gateway realmente conectado no painel admin — nunca confia
     // apenas no que o front-end enviou.
@@ -124,16 +133,30 @@ serve(async (req: Request) => {
 
     let finalAmount = typeof product.price === 'string' ? parseFloat(product.price) : product.price
     let bumpAmount = 0;
-    let finalOrderBumpId = null;
+    let finalOrderBumpIds: string[] = [];
+    // Compat: mantém o campo antigo (singular) apontando para o primeiro bump aceito
+    let finalOrderBumpId: string | null = null;
 
-    if (order_bump_id) {
-       const { data: bumpProd } = await supabase.from('products').select('id, bump_price, price, name').eq('id', order_bump_id).eq('is_order_bump', true).maybeSingle();
-       if (bumpProd) {
-          finalOrderBumpId = bumpProd.id;
-          bumpAmount = typeof bumpProd.bump_price === 'number' ? bumpProd.bump_price : (typeof bumpProd.price === 'string' ? parseFloat(bumpProd.price) : bumpProd.price);
-          finalAmount += bumpAmount;
-          console.log(`[CreatePayment] Order Bump detected: ${bumpProd.name} (+R$ ${bumpAmount})`)
-       }
+    if (requestedBumpIds.length > 0) {
+      const { data: bumpProds } = await supabase
+        .from('products')
+        .select('id, bump_price, price, name')
+        .in('id', requestedBumpIds)
+        .eq('is_order_bump', true)
+        .eq('active', true);
+
+      if (bumpProds && bumpProds.length > 0) {
+        for (const bumpProd of bumpProds) {
+          const price = typeof bumpProd.bump_price === 'number'
+            ? bumpProd.bump_price
+            : (typeof bumpProd.price === 'string' ? parseFloat(bumpProd.price) : bumpProd.price);
+          bumpAmount += price;
+          finalOrderBumpIds.push(bumpProd.id);
+          console.log(`[CreatePayment] Order Bump detected: ${bumpProd.name} (+R$ ${price})`)
+        }
+        finalAmount += bumpAmount;
+        finalOrderBumpId = finalOrderBumpIds[0] || null;
+      }
     }
 
     // ── 2. Aplicar cupom (se fornecido) ────────────────────
@@ -171,10 +194,12 @@ serve(async (req: Request) => {
 
     if (existingCustomer) {
       customerId = existingCustomer.id
-      await supabase.from('customers').update({
+      const customerUpdate: Record<string, unknown> = {
         full_name: customer_name,
         phone: customer_phone || null,
-      }).eq('id', customerId)
+      }
+      if (customer_document) customerUpdate.document = customer_document
+      await supabase.from('customers').update(customerUpdate).eq('id', customerId)
     } else {
       const { data: newCustomer, error: customerError } = await supabase
         .from('customers')
@@ -182,6 +207,7 @@ serve(async (req: Request) => {
           email: customer_email,
           full_name: customer_name,
           phone: customer_phone || null,
+          document: customer_document || null,
         })
         .select('id')
         .single()
@@ -254,7 +280,9 @@ serve(async (req: Request) => {
         commission_amount: finalCommissionAmount,
         commission_status: finalCommissionStatus,
         order_bump_id: finalOrderBumpId,
-        order_bump_amount: finalOrderBumpId ? bumpAmount : null
+        order_bump_ids: finalOrderBumpIds,
+        order_bump_amount: finalOrderBumpIds.length > 0 ? bumpAmount : null,
+        customer_document: customer_document || null,
       })
       .select('id')
       .single()
