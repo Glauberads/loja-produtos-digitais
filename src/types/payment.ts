@@ -13,6 +13,16 @@ export interface CreateOrderParams {
   customer_phone?: string
   customer_document?: string
   gateway?: PaymentGateway
+  payment_method?: 'PIX' | 'CREDIT_CARD'
+  credit_card?: {
+    holderName: string
+    number: string
+    expiryMonth: string
+    expiryYear: string
+    ccv: string
+    postalCode?: string
+    addressNumber?: string
+  }
   coupon_code?: string
   // Order Bump
   order_bump_id?: string

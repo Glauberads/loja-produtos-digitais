@@ -26,6 +26,7 @@ import { AffiliatesPage } from './pages/admin/AffiliatesPage';
 import { CommissionsPage } from './pages/admin/CommissionsPage';
 import { SuccessOfferPage } from './pages/SuccessOfferPage';
 import { MemberAreaSettingsPage } from './pages/admin/MemberAreaSettingsPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 
 const RootLayout = () => {
   return (
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <App />,    
+      },
+      {
+        path: '/checkout/:id',
+        element: <CheckoutPage />,
       },
       {
         path: '/success',

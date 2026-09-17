@@ -83,18 +83,39 @@ export class AsaasProvider implements GatewayProvider {
       }
 
       const dueDate = new Date().toISOString().split('T')[0]
+      
+      let payload: any = {
+        customer: customerId,
+        billingType: params.paymentMethod === 'CREDIT_CARD' ? 'CREDIT_CARD' : 'PIX',
+        value: params.amount,
+        dueDate,
+        description: params.productName,
+        externalReference: params.orderId,
+      }
+
+      if (params.paymentMethod === 'CREDIT_CARD' && params.creditCard) {
+        payload.creditCard = {
+          holderName: params.creditCard.holderName,
+          number: params.creditCard.number,
+          expiryMonth: params.creditCard.expiryMonth,
+          expiryYear: params.creditCard.expiryYear,
+          ccv: params.creditCard.ccv,
+        }
+        payload.creditCardHolderInfo = {
+          name: params.customer.name,
+          email: params.customer.email,
+          cpfCnpj: params.customer.document || '',
+          postalCode: params.creditCard.postalCode || '00000000',
+          addressNumber: params.creditCard.addressNumber || '0',
+          phone: params.customer.phone || '',
+          mobilePhone: params.customer.phone || '',
+        }
+      }
 
       const paymentRes = await fetch(`${this.baseUrl}/payments`, {
         method: 'POST',
         headers: this.headers(),
-        body: JSON.stringify({
-          customer: customerId,
-          billingType: 'PIX',
-          value: params.amount,
-          dueDate,
-          description: params.productName,
-          externalReference: params.orderId,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!paymentRes.ok) {

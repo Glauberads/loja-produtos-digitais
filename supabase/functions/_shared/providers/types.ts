@@ -16,6 +16,16 @@ export interface CreatePaymentParams {
     phone?: string
     document?: string
   }
+  paymentMethod?: 'PIX' | 'CREDIT_CARD'
+  creditCard?: {
+    holderName: string
+    number: string
+    expiryMonth: string
+    expiryYear: string
+    ccv: string
+    postalCode?: string
+    addressNumber?: string
+  }
   metadata?: any
 }
 

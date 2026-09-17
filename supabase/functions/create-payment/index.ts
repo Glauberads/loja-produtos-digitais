@@ -36,6 +36,16 @@ interface CreatePaymentRequest {
   affiliate_code?: string
   order_bump_id?: string // legado: um único bump (ainda suportado)
   order_bump_ids?: string[] // novo: múltiplos bumps selecionados no checkout
+  payment_method?: 'PIX' | 'CREDIT_CARD'
+  credit_card?: {
+    holderName: string
+    number: string
+    expiryMonth: string
+    expiryYear: string
+    ccv: string
+    postalCode?: string
+    addressNumber?: string
+  }
 }
 
 // Campos obrigatórios por gateway para considerá-lo "conectado"
@@ -95,7 +105,8 @@ serve(async (req: Request) => {
       product_id, customer_name, customer_email, customer_phone,
       gateway: requestedGateway, coupon_code,
       utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-      fbp, fbc, event_id, affiliate_code, order_bump_id, order_bump_ids, customer_document
+      fbp, fbc, event_id, affiliate_code, order_bump_id, order_bump_ids, customer_document,
+      payment_method, credit_card
     } = body
 
     // Normaliza a lista de bumps: aceita tanto o campo antigo (order_bump_id,
@@ -311,7 +322,10 @@ serve(async (req: Request) => {
           email: customer_email,
           name: customer_name,
           phone: customer_phone,
+          document: customer_document,
         },
+        paymentMethod: payment_method,
+        creditCard: credit_card,
         metadata: {
           product_id,
         }
