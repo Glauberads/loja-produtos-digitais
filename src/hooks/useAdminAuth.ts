@@ -85,5 +85,28 @@ export function useAdminAuth() {
     await supabase.auth.signOut();
   };
 
-  return { ...state, login, logout };
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const redirectTo = `${window.location.origin}/admin/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      return { success: true, message: 'Enviamos um link de redefinição para o seu e-mail.' };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao solicitar redefinição de senha.';
+      return { success: false, message };
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      return { success: true, message: 'Senha atualizada com sucesso.' };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao atualizar a senha.';
+      return { success: false, message };
+    }
+  };
+
+  return { ...state, login, logout, requestPasswordReset, updatePassword };
 }

@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { AnalyticsProvider } from './components/analytics/AnalyticsProvider';
 import App from './App';
 import { AdminLogin } from './pages/admin/AdminLogin';
+import { ResetPasswordPage } from './pages/admin/ResetPasswordPage';
 import { AdminLayout } from './components/admin/layout/AdminLayout';
 import { DashboardPage } from './pages/admin/DashboardPage';
 import { AnalyticsPage } from './pages/admin/AnalyticsPage';
@@ -57,7 +58,11 @@ const router = createBrowserRouter([
       },
       {
         path: '/admin/login',
-        element: <AdminLogin />,    
+        element: <AdminLogin />,
+      },
+      {
+        path: '/admin/reset-password',
+        element: <ResetPasswordPage />,
       },
       {
         path: '/admin',
