@@ -46,7 +46,15 @@ serve(async (req: Request) => {
   }
 
   const gatewayHeader = req.headers.get('x-gateway-provider')
-  const gateway = (gatewayHeader || (body.gateway as string) || 'mercadopago').toLowerCase()
+  const gatewayQueryParam = new URL(req.url).searchParams.get('gateway')
+  const asaasToken = req.headers.get('asaas-access-token')
+  const gateway = (
+    gatewayHeader ||
+    gatewayQueryParam ||
+    (body.gateway as string) ||
+    (asaasToken ? 'asaas' : '') ||
+    'mercadopago'
+  ).toLowerCase()
   console.log(`[Webhook] Gateway: ${gateway}`)
 
   let validationResult
