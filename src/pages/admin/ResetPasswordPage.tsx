@@ -91,7 +91,7 @@ export const ResetPasswordPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="glassmorphism rounded-3xl p-8 border border-white/8 shadow-2xl">
+        <div className="bg-brand-darkGray/90 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
           {checkingSession ? (
             <div className="flex flex-col items-center gap-4 py-6">
               <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
