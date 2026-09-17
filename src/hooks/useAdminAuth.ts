@@ -87,7 +87,10 @@ export function useAdminAuth() {
 
   const requestPasswordReset = async (email: string) => {
     try {
-      const redirectTo = `${window.location.origin}/admin/reset-password`;
+      // Usa sempre o domínio www fixo: o domínio apex faz um 307 redirect para o www,
+      // e esse redirect pode descartar o fragmento (#access_token=...) do link de recuperação
+      // em navegadores in-app (Gmail/Outlook), deixando a página presa em "Validando link...".
+      const redirectTo = 'https://www.omelhordodigital.com.br/admin/reset-password';
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
       if (error) throw error;
       return { success: true, message: 'Enviamos um link de redefinição para o seu e-mail.' };
