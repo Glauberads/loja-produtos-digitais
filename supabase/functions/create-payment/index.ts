@@ -20,7 +20,7 @@ interface CreatePaymentRequest {
   customer_name: string
   customer_email: string
   customer_phone?: string
-  gateway?: string // default: 'mercadopago'
+  gateway?: string // opcional: apenas uma dica, o gateway ativo é resolvido no servidor
   coupon_code?: string
   // UTM Tracking
   utm_source?: string
@@ -36,6 +36,48 @@ interface CreatePaymentRequest {
   order_bump_id?: string
 }
 
+// Campos obrigatórios por gateway para considerá-lo "conectado"
+// (mesma lógica usada em src/pages/admin/IntegrationsPage.tsx)
+const GATEWAY_REQUIRED_FIELDS: Record<string, string[]> = {
+  stripe: ['publishable_key', 'secret_key'],
+  mercadopago: ['public_key', 'access_token'],
+  asaas: ['api_key', 'environment'],
+  pagarme: ['secret_key', 'public_key'],
+}
+
+// Ordem de prioridade quando mais de um gateway estiver conectado
+const GATEWAY_PRIORITY = ['asaas', 'mercadopago', 'stripe', 'pagarme']
+
+/**
+ * Resolve qual gateway usar com base no que está de fato configurado/conectado
+ * em admin_settings (payment_gateway_configs). Nunca confia apenas no valor
+ * enviado pelo cliente, pois isso permitiria cobrar por um gateway desconectado
+ * ou divergente do exibido no painel admin.
+ */
+async function resolveActiveGateway(supabase: any, requestedGateway?: string): Promise<string> {
+  const { data } = await supabase
+    .from('admin_settings')
+    .select('value')
+    .eq('id', 'payment_gateway_configs')
+    .maybeSingle()
+
+  const configs = (data?.value as Record<string, Record<string, string>>) || {}
+
+  const isConnected = (id: string) => {
+    const cfg = configs[id]
+    if (!cfg) return false
+    const required = GATEWAY_REQUIRED_FIELDS[id] || []
+    return required.every((f) => (cfg[f] ?? '').trim().length > 0)
+  }
+
+  if (requestedGateway && isConnected(requestedGateway)) {
+    return requestedGateway
+  }
+
+  const active = GATEWAY_PRIORITY.find(isConnected)
+  return active || requestedGateway || 'mercadopago'
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -49,10 +91,14 @@ serve(async (req: Request) => {
     const body: CreatePaymentRequest = await req.json()
     const {
       product_id, customer_name, customer_email, customer_phone,
-      gateway = 'mercadopago', coupon_code,
+      gateway: requestedGateway, coupon_code,
       utm_source, utm_medium, utm_campaign, utm_content, utm_term,
       fbp, fbc, event_id, affiliate_code, order_bump_id
     } = body
+
+    // Resolve o gateway realmente conectado no painel admin — nunca confia
+    // apenas no que o front-end enviou.
+    const gateway = await resolveActiveGateway(supabase, requestedGateway)
 
     if (!product_id || !customer_name || !customer_email) {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: product_id, customer_name, customer_email' }), {

@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import {
   CheckCircle2, Package, Copy, Check,
   Clock, MessageCircle, RefreshCw, ShieldCheck, Download, ArrowRight
@@ -10,11 +11,23 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import type { OrderRow, ProductAccessRow } from '../types/payment';
 
 // ── Animação de Confete ──────────────────────────────────────
-const ConfettiDot = ({ style }: { style: React.CSSProperties }) => (
-  <div className="absolute rounded-full animate-bounce pointer-events-none" style={style} />
-);
+// Dispara uma explosão de confete real (canvas-confetti) quando o
+// pagamento é aprovado. Chamada apenas uma vez por aprovação.
+function fireSuccessConfetti() {
+  const colors = ['#FF6B35', '#FFD700', '#00FF88', '#00D4FF', '#FF69B4', '#9B59B6'];
 
-const CONFETTI_COLORS = ['#FF6B35', '#FFD700', '#00FF88', '#00D4FF', '#FF69B4', '#9B59B6'];
+  const burst = (opts: confetti.Options) =>
+    confetti({
+      colors,
+      disableForReducedMotion: true,
+      ...opts,
+    });
+
+  // Duas explosões laterais + uma central para um efeito mais completo
+  burst({ particleCount: 90, angle: 60, spread: 65, origin: { x: 0, y: 0.6 } });
+  burst({ particleCount: 90, angle: 120, spread: 65, origin: { x: 1, y: 0.6 } });
+  burst({ particleCount: 120, spread: 100, origin: { x: 0.5, y: 0.4 }, startVelocity: 45 });
+}
 
 export const SuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -27,6 +40,7 @@ export const SuccessPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [pixelFired, setPixelFired] = useState(false);
+  const confettiFiredRef = useRef(false);
 
   const { trackPurchase } = useAnalytics();
 
@@ -77,6 +91,14 @@ export const SuccessPage: React.FC = () => {
     }
   }, [order?.status, loadData]);
 
+  // Dispara o confete uma única vez quando o pagamento é aprovado
+  useEffect(() => {
+    if (order?.status === 'approved' && !confettiFiredRef.current) {
+      confettiFiredRef.current = true;
+      fireSuccessConfetti();
+    }
+  }, [order?.status]);
+
   const handleCopyLink = () => {
     const link = `${window.location.origin}/minha-area?order=${orderId}&token=${downloadToken}`;
     navigator.clipboard.writeText(link).then(() => {
@@ -88,21 +110,6 @@ export const SuccessPage: React.FC = () => {
   const accessLink = downloadToken
     ? `${window.location.origin}/minha-area?order=${orderId}&token=${downloadToken}`
     : `/minha-area?order=${orderId}`;
-
-  // Confetti random positions
-  const confetti = Array.from({ length: 24 }, (_, i) => ({
-    key: i,
-    style: {
-      width: `${6 + Math.random() * 8}px`,
-      height: `${6 + Math.random() * 8}px`,
-      top: `${Math.random() * 40}%`,
-      left: `${Math.random() * 100}%`,
-      background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      animationDelay: `${Math.random() * 1.5}s`,
-      animationDuration: `${1 + Math.random() * 1.5}s`,
-      opacity: 0.7,
-    } as React.CSSProperties,
-  }));
 
   if (loading) {
     return (
@@ -135,9 +142,6 @@ export const SuccessPage: React.FC = () => {
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-green-500/5 blur-[100px] pointer-events-none" />
-
-      {/* Confetti (apenas se aprovado) */}
-      {isApproved && confetti.map(c => <ConfettiDot key={c.key} style={c.style} />)}
 
       <div className="relative z-10 w-full max-w-lg">
         {/* Card principal */}
@@ -264,7 +268,7 @@ export const SuccessPage: React.FC = () => {
                   Verificando a cada 5 segundos...
                 </div>
                 <p className="text-xs text-white/30">
-                  Se você pagou o PIX, aguarde alguns segundos. O Mercado Pago pode demorar até 2 minutos para confirmar.
+                  Se você pagou o PIX, aguarde alguns segundos. A confirmação pode demorar até 2 minutos.
                 </p>
               </div>
 

@@ -83,7 +83,6 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         customer_name: formData.name.trim(),
         customer_email: formData.email.trim().toLowerCase(),
         customer_phone: formData.phone.trim(),
-        gateway: 'mercadopago',
         event_id: eventId,
         order_bump_id: isBumpSelected && bumpProduct ? bumpProduct.id : undefined,
         ...utms,
@@ -433,7 +432,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
                 <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/30">
                   <ShieldCheck size={11} className="text-emerald-500" />
-                  Pagamento seguro via Mercado Pago
+                  Pagamento 100% seguro e criptografado
                 </div>
               </div>
             )}
