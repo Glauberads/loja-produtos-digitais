@@ -28,10 +28,14 @@ import { SuccessOfferPage } from './pages/SuccessOfferPage';
 import { MemberAreaSettingsPage } from './pages/admin/MemberAreaSettingsPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 
+import { AdminAuthProvider } from './hooks/useAdminAuth';
+
 const RootLayout = () => {
   return (
     <AnalyticsProvider>
-      <Outlet />
+      <AdminAuthProvider>
+        <Outlet />
+      </AdminAuthProvider>
     </AnalyticsProvider>
   );
 };
