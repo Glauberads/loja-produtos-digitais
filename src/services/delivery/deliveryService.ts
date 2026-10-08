@@ -189,7 +189,7 @@ export async function getAllAccesses(options: {
     .select(`
       *,
       products:product_id (id, name),
-      orders:order_id (id, amount, paid_at, status, customer_email, customer_name, gateway)
+      orders:order_id (id, price, paid_at, status, customer_email, customer_name, gateway)
     `)
     .order('created_at', { ascending: false })
 
