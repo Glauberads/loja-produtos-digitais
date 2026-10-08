@@ -38,30 +38,14 @@ export function useAdminAuth() {
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (!mounted) return;
-        
-        const session = data?.session;
-        if (error || !session?.user) {
-          setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: error?.message || null });
-          return;
-        }
-
-        const { isAdmin, role } = await fetchAdminDetails(session.user.id);
-        if (!mounted) return;
-        
-        setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
-      } catch (err: any) {
-        if (!mounted) return;
-        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: err?.message || 'Error initializing auth' });
+    // Timeout fallback just in case onAuthStateChange never fires (e.g. adblocker blocking supabase)
+    const fallbackTimer = setTimeout(() => {
+      if (mounted && state.loading) {
+        setState(prev => ({ ...prev, loading: false, error: 'Tempo limite excedido ao carregar sessão.' }));
       }
-    };
+    }, 5000);
 
-    initAuth();
-
-    // Listen for auth changes
+    // Listen for auth changes (this fires immediately with INITIAL_SESSION in Supabase v2)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
       
@@ -81,6 +65,7 @@ export function useAdminAuth() {
 
     return () => {
       mounted = false;
+      clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, []);
