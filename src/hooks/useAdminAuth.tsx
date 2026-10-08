@@ -44,26 +44,38 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     let mounted = true;
 
+    // Timeout fallback just in case both getSession and onAuthStateChange fail to resolve
     const fallbackTimer = setTimeout(() => {
       if (mounted && state.loading) {
         setState(prev => ({ ...prev, loading: false, error: 'Tempo limite excedido ao carregar sessão.' }));
       }
     }, 5000);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
-      try {
-        if (session?.user) {
-          const { isAdmin, role } = await fetchAdminDetails(session.user.id);
-          if (!mounted) return;
-          setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
-        } else {
-          setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
-        }
-      } catch (err) {
-        if (!mounted) return;
-        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+    const loadSession = async (session: Session | null) => {
+      if (!session?.user) {
+        if (mounted) setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+        return;
       }
+      try {
+        const { isAdmin, role } = await fetchAdminDetails(session.user.id);
+        if (mounted) setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
+      } catch {
+        if (mounted) setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+      }
+    };
+
+    // 1. Manually fetch the current session (vital on page reload!)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        if (mounted) setState(prev => ({ ...prev, loading: false, error: error.message }));
+      } else {
+        loadSession(session);
+      }
+    });
+
+    // 2. Listen for future auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      loadSession(session);
     });
 
     return () => {
