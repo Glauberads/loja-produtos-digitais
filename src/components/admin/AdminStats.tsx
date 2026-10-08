@@ -18,32 +18,36 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ products }) => {
       value: total,
       icon: Package,
       color: 'text-blue-400',
-      bg: 'bg-blue-500/10 border-blue-500/20',
-      glow: 'shadow-[0_0_20px_rgba(59,130,246,0.1)]',
+      borderColor: 'border-blue-500/20 hover:border-blue-500/40',
+      iconBg: 'bg-blue-500/10',
+      glow: 'shadow-[0_0_20px_rgba(59,130,246,0.05)] hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]',
     },
     {
       label: 'Produtos Ativos',
       value: active,
       icon: CheckCircle,
       color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10 border-emerald-500/20',
-      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.1)]',
+      borderColor: 'border-emerald-500/20 hover:border-emerald-500/40',
+      iconBg: 'bg-emerald-500/10',
+      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.05)] hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]',
     },
     {
       label: 'Produtos Inativos',
       value: inactive,
       icon: XCircle,
       color: 'text-red-400',
-      bg: 'bg-red-500/10 border-red-500/20',
-      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.1)]',
+      borderColor: 'border-red-500/20 hover:border-red-500/40',
+      iconBg: 'bg-red-500/10',
+      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.05)] hover:shadow-[0_0_25px_rgba(239,68,68,0.15)]',
     },
     {
       label: 'Mais Vendidos',
       value: topSellers,
       icon: TrendingUp,
       color: 'text-brand-orange',
-      bg: 'bg-brand-orange/10 border-brand-orange/20',
-      glow: 'shadow-neon-orange',
+      borderColor: 'border-brand-orange/20 hover:border-brand-orange/40',
+      iconBg: 'bg-brand-orange/10',
+      glow: 'shadow-[0_0_20px_rgba(255,106,0,0.05)] hover:shadow-[0_0_25px_rgba(255,106,0,0.15)]',
     },
   ];
 
@@ -54,15 +58,18 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ products }) => {
         return (
           <div
             key={stat.label}
-            className={`glassmorphism rounded-2xl p-5 border ${stat.bg} ${stat.glow} transition-all duration-300`}
+            className={`rounded-2xl p-5 border bg-[#0B1020]/60 backdrop-blur-md ${stat.borderColor} ${stat.glow} transition-all duration-300 relative overflow-hidden group`}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className={`p-2 rounded-xl ${stat.bg}`}>
+            {/* Subtle gradient background for hover */}
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-transparent to-${stat.color.replace('text-', '')}/5`} />
+            
+            <div className="flex items-start justify-between mb-3 relative z-10">
+              <div className={`p-2 rounded-xl ${stat.iconBg}`}>
                 <Icon size={18} className={stat.color} />
               </div>
             </div>
-            <div className={`text-3xl font-black ${stat.color} font-mono`}>{stat.value}</div>
-            <div className="text-xs text-white/40 mt-1 font-medium">{stat.label}</div>
+            <div className={`text-3xl font-black ${stat.color} font-mono relative z-10`}>{stat.value}</div>
+            <div className="text-xs text-white/40 mt-1 font-medium relative z-10">{stat.label}</div>
           </div>
         );
       })}

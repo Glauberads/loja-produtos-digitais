@@ -118,9 +118,26 @@ serve(async (req: Request) => {
 
     console.log(`[Download] Token usado: ${token.slice(0, 8)}... | Download ${download.download_count + 1}/${download.max_downloads} | IP: ${ip}`)
 
-    // ── 7. Buscar link de entrega do produto ───────────────
-    const product = download.products as { id: string; name: string; checkout_url: string; details_url: string } | null
-    const deliveryUrl = product?.checkout_url || product?.details_url || null
+    // ── 7. Buscar link de entrega do produto na nova tabela segura ───────────────
+    const { data: asset, error: assetError } = await supabase
+      .from('product_delivery_assets')
+      .select('delivery_url, is_active')
+      .eq('product_id', download.product_id)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (assetError || !asset || !asset.delivery_url) {
+      return new Response(JSON.stringify({
+        error: 'Arquivo ainda sendo preparado. Contate o suporte com o número do pedido.',
+        code: 'DELIVERY_NOT_CONFIGURED'
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const deliveryUrl = asset.delivery_url
+    const product = download.products as { id: string; name: string } | null
 
     // ── 8. Retornar dados de acesso ────────────────────────
     return new Response(JSON.stringify({

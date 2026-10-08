@@ -11,6 +11,8 @@ export interface Product {
   features: string[];
   techStack: string[];
   gradient: string;
+  checkout_banner_url?: string;
+  checkout_side_image_url?: string;
   iconName: string;
   videoUrl?: string;
   detailsUrl?: string;

@@ -166,9 +166,16 @@ serve(async (req: Request) => {
       console.log(`[Webhook] Access granted to Order Bump product: ${order.order_bump_id}`)
     }
 
-    // 2.2 Gera Token de Download
-    const maxDownloads = typeof product?.max_downloads === 'number' ? product.max_downloads : 5
-    const expirationDays = typeof product?.download_expiration_days === 'number' ? product.download_expiration_days : 30
+    // 2.2 Buscar dados do produto para configuração de download
+    const { data: productData } = await supabase
+      .from('products')
+      .select('name, max_downloads, download_expiration_days')
+      .eq('id', order.product_id)
+      .maybeSingle()
+
+    // 2.3 Gera Token de Download
+    const maxDownloads = typeof productData?.max_downloads === 'number' ? productData.max_downloads : 3
+    const expirationDays = typeof productData?.download_expiration_days === 'number' ? productData.download_expiration_days : 30
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + expirationDays)
     
@@ -180,7 +187,7 @@ serve(async (req: Request) => {
       order_id: order.id,
       token: downloadToken,
       expires_at: expiresAt,
-      max_downloads: 3,
+      max_downloads: maxDownloads,
       download_count: 0,
     })
 
@@ -233,7 +240,7 @@ serve(async (req: Request) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://nexussaas.com.br'
     const accessLink = `${siteUrl}/minha-area?order=${order.id}&token=${downloadToken}`
     
-    const { data: productData } = await supabase.from('products').select('name').eq('id', order.product_id).maybeSingle()
+    // productData já foi buscado na etapa 2.2 acima (inclui name, max_downloads, download_expiration_days)
 
     const eventsToQueue = [
       {

@@ -32,21 +32,21 @@ const KpiCard = ({ title, value, change, isPositive, icon: Icon, delay }: any) =
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, delay }}
-    className="p-5 rounded-2xl bg-[#0B1020]/50 border border-white/5 backdrop-blur-md group hover:border-brand-orange/30 transition-all"
+    className="relative overflow-hidden p-5 rounded-2xl bg-[#0B1020]/50 border border-white/5 backdrop-blur-md group hover:border-brand-orange/30 transition-all"
   >
-    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-      <Icon size={48} className="text-white" />
+    <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+      <Icon size={80} className="text-white" />
     </div>
-    <div className="flex items-center gap-3 mb-4">
+    <div className="relative z-10 flex items-center gap-3 mb-4">
       <div className="p-2 rounded-lg bg-white/5 text-white/70 group-hover:text-brand-orange group-hover:bg-brand-orange/10 transition-colors">
         <Icon size={18} />
       </div>
-      <span className="text-sm font-medium text-white/60">{title}</span>
+      <span className="text-sm font-medium text-white/60 truncate">{title}</span>
     </div>
-    <div className="flex items-baseline gap-2 mb-1">
+    <div className="relative z-10 flex items-baseline gap-2 mb-1">
       <h3 className="text-3xl font-black text-white">{value}</h3>
     </div>
-    <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+    <div className={`relative z-10 flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
       {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
       <span>{change} vs último mês</span>
     </div>

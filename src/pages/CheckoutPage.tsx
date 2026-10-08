@@ -167,9 +167,9 @@ export const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f6] font-sans text-gray-800 pb-20">
       {/* Top Banner (Match the image style) */}
-      <div className="w-full bg-[#111] border-b-4 border-red-500 flex justify-center py-0">
-         {/* Placeholder for the big banner image */}
-         <img src="https://images.unsplash.com/photo-1620325867502-221afb5faa5f?auto=format&fit=crop&w=1200&h=300" alt="Banner" className="w-full max-w-5xl h-48 md:h-64 object-cover object-center brightness-75" />
+      <div className="w-full relative bg-brand-black flex justify-center">
+        <img src={product.checkout_banner_url || "https://images.unsplash.com/photo-1620325867502-221afb5faa5f?auto=format&fit=crop&w=1200&h=300"} alt="Banner" className="w-full max-w-5xl h-48 md:h-64 object-cover object-center brightness-75" />
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#f3f4f6] to-transparent pointer-events-none" />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 mt-6 flex flex-col md:flex-row gap-6">
@@ -393,7 +393,7 @@ export const CheckoutPage = () => {
             
             {/* Sidebar Banner */}
             <div className="mt-4 rounded-xl overflow-hidden border border-gray-200 shadow-sm hidden md:block">
-               <img src="https://images.unsplash.com/photo-1620325867502-221afb5faa5f?auto=format&fit=crop&w=400&h=600" alt="Product Side" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity" />
+               <img src={product.checkout_side_image_url || "https://images.unsplash.com/photo-1620325867502-221afb5faa5f?auto=format&fit=crop&w=400&h=600"} alt="Product Side" className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity" />
             </div>
           </div>
         </div>

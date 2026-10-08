@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Edit2, Trash2, ToggleLeft, ToggleRight, Search, ChevronUp, ChevronDown } from 'lucide-react';
 import type { SupabaseProduct } from '../../hooks/useProducts';
 
@@ -182,8 +183,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products, onEdit, on
       </div>
 
       {/* Delete Confirm Modal */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {confirmDelete && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-brand-black/85 backdrop-blur-sm" onClick={() => setConfirmDelete(null)} />
           <div className="relative glassmorphism border border-red-500/20 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
             <div className="text-center space-y-2">
@@ -204,7 +205,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products, onEdit, on
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

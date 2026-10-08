@@ -28,7 +28,7 @@ const emptyForm = (): ProductInput => ({
   slug: '', name: '', category: 'SaaS', short_description: '', long_description: '',
   price: 0, rating: 5.0, sales_count: 0, badge: null, features: [], tech_stack: [],
   gradient: GRADIENTS[0], icon_name: 'Box', image_url: null,
-  video_url: null, details_url: null, checkout_url: null, active: true,
+  video_url: null, details_url: null, checkout_url: null, checkout_banner_url: null, checkout_side_image_url: null, active: true,
 });
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, onSave }) => {
@@ -49,16 +49,46 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onC
     active: false
   });
 
+  // Delivery Asset State
+  const [deliveryAsset, setDeliveryAsset] = useState({
+    provider: 'google_drive',
+    delivery_url: '',
+    is_active: true
+  });
+
   useEffect(() => {
     if (product) {
       const { id: _id, created_at: _ca, updated_at: _ua, ...rest } = product as SupabaseProduct & { id: string; created_at: string; updated_at: string };
       setForm({ ...rest });
       loadUpsellOffer(product.id);
+      loadDeliveryAsset(product.id);
     } else {
       setForm(emptyForm());
+      setDeliveryAsset({ provider: 'google_drive', delivery_url: '', is_active: true });
     }
     loadAvailableProducts();
   }, [product]);
+
+  const loadDeliveryAsset = async (productId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delivery-assets?product_id=${productId}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      const json = await res.json();
+      if (json.data) {
+        setDeliveryAsset({
+          provider: json.data.provider,
+          delivery_url: json.data.delivery_url,
+          is_active: json.data.is_active
+        });
+      }
+    } catch (e) {
+      console.error('Error loading delivery asset', e);
+    }
+  };
 
   const loadAvailableProducts = async () => {
     const { data } = await supabase.from('products').select('id, name, price').eq('active', true);
@@ -112,30 +142,53 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onC
     }
   };
 
+  const saveDeliveryAsset = async (productId: string) => {
+    if (!deliveryAsset.delivery_url) return; // Só salva se tiver preenchido
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delivery-assets`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          provider: deliveryAsset.provider,
+          delivery_url: deliveryAsset.delivery_url,
+          is_active: deliveryAsset.is_active
+        })
+      });
+    } catch (e) {
+      console.error('Erro ao salvar asset de entrega', e);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     
     try {
-      // 1. Salvar o Produto Principal
-      // O hook onSave por enquanto não devolve o ID salvo facilmente se for produto novo
-      // Então upsell em produto novo talvez tenha que ser configurado depois de salvar
-      // Mas se for edição de produto, podemos salvar.
       const ok = await onSave(form);
       
       if (ok && product) {
-        // Se for update, salva o upsell associado
         await saveUpsell(product.id);
+        await saveDeliveryAsset(product.id);
       } else if (ok && !product) {
-        // Se for novo, vai precisar buscar o produto recém-criado pelo slug para salvar o upsell
         const { data: newProd } = await supabase.from('products').select('id').eq('slug', form.slug).single();
-        if (newProd) await saveUpsell(newProd.id);
+        if (newProd) {
+          await saveUpsell(newProd.id);
+          await saveDeliveryAsset(newProd.id);
+        }
       }
       
       if (ok) onClose();
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar produto ou upsell');
+      alert('Erro ao salvar produto ou configurações');
     } finally {
       setSaving(false);
     }
@@ -300,7 +353,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onC
               </div>
 
               {/* URLs */}
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL do Vídeo</label>
                   <input value={form.video_url || ''} onChange={e => set('video_url', e.target.value || null)} placeholder="https://..." className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white" />
@@ -309,9 +362,53 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onC
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL Ver Mais</label>
                   <input value={form.details_url || ''} onChange={e => set('details_url', e.target.value || null)} placeholder="https://..." className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white" />
                 </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">URL do Checkout</label>
-                  <input value={form.checkout_url || ''} onChange={e => set('checkout_url', e.target.value || null)} placeholder="https://..." className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white" />
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Banner do Checkout (Opcional)</label>
+                  <input value={form.checkout_banner_url || ''} onChange={e => set('checkout_banner_url', e.target.value || null)} placeholder="https://..." className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Imagem Lateral Checkout (Opcional)</label>
+                  <input value={form.checkout_side_image_url || ''} onChange={e => set('checkout_side_image_url', e.target.value || null)} placeholder="https://..." className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white" />
+                </div>
+              </div>
+
+              {/* Entrega Automática Segura */}
+              <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-4">
+                <div className="flex items-center gap-2 text-blue-400 font-bold mb-2">
+                  <ShoppingBag size={16} />
+                  Entrega do Produto (Segura)
+                </div>
+                <p className="text-xs text-white/50 -mt-2">
+                  Este link é privado e será disponibilizado na Área de Membros somente após a validação do pagamento e do acesso do cliente. Nunca use o checkout_url aqui.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Provedor</label>
+                    <select 
+                      value={deliveryAsset.provider} 
+                      onChange={e => setDeliveryAsset(prev => ({ ...prev, provider: e.target.value }))}
+                      className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all"
+                    >
+                      <option value="google_drive">Google Drive</option>
+                      <option value="mega">Mega</option>
+                      <option value="s3">Amazon S3</option>
+                      <option value="supabase_storage">Supabase Storage</option>
+                      <option value="external">Outro Link Externo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Link de Entrega Seguro (HTTPS)*</label>
+                    <input 
+                      type="url"
+                      value={deliveryAsset.delivery_url} 
+                      onChange={e => setDeliveryAsset(prev => ({ ...prev, delivery_url: e.target.value }))} 
+                      placeholder="https://drive.google.com/..." 
+                      className="mt-1 w-full px-3.5 py-2.5 rounded-xl bg-brand-darkGray/50 border border-white/8 text-sm text-white focus:outline-none focus:border-brand-orange/40 transition-all" 
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -20,6 +20,8 @@ export interface SupabaseProduct {
   video_url: string | null;
   details_url: string | null;
   checkout_url: string | null;
+  checkout_banner_url: string | null;
+  checkout_side_image_url: string | null;
   active: boolean;
   created_at: string;
   updated_at: string;

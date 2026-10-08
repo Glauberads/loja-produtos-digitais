@@ -345,9 +345,25 @@ serve(async (req: Request) => {
         console.log(`[Gateway] Pagamento gerado. ID: ${gatewayPaymentId}`)
       } else {
         console.error(`[Gateway] Erro ao gerar pagamento:`, payResult.error)
+        
+        // Atualiza a order como failed
+        await supabase.from('orders').update({
+          status: 'failed',
+          payment_status: 'failed',
+          gateway_response: { error: payResult.error }
+        }).eq('id', order.id)
+
+        return new Response(JSON.stringify({ error: `Recusado pelo gateway: ${payResult.error}` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
       }
     } catch (err: any) {
       console.error(`[Gateway] Exceção ao chamar provider:`, err.message)
+      return new Response(JSON.stringify({ error: `Erro interno no gateway: ${err.message}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     return new Response(JSON.stringify({
