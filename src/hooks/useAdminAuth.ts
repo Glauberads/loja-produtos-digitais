@@ -36,27 +36,53 @@ export function useAdminAuth() {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        const session = data?.session;
+        if (error || !session?.user) {
+          setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: error?.message || null });
+          return;
+        }
+
         const { isAdmin, role } = await fetchAdminDetails(session.user.id);
+        if (!mounted) return;
+        
         setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
-      } else {
-        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+      } catch (err: any) {
+        if (!mounted) return;
+        setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: err?.message || 'Error initializing auth' });
       }
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { isAdmin, role } = await fetchAdminDetails(session.user.id);
-        setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
-      } else {
+      if (!mounted) return;
+      
+      try {
+        if (session?.user) {
+          const { isAdmin, role } = await fetchAdminDetails(session.user.id);
+          if (!mounted) return;
+          setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
+        } else {
+          setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+        }
+      } catch (err) {
+        if (!mounted) return;
         setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
