@@ -44,33 +44,92 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     let mounted = true;
 
-    // Timeout fallback just in case both getSession and onAuthStateChange fail to resolve
+    const clearState = () => {
+      if (mounted) setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+    };
+
+    // Auto-signOut clears corrupted/expired tokens from localStorage
+    // so the user doesn't need to manually clear cookies
+    const forceCleanSignOut = async () => {
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // If even signOut fails, manually clear Supabase keys from localStorage
+        try {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+        } catch { /* ignore */ }
+      }
+      clearState();
+    };
+
+    // Timeout fallback: if session loading takes too long, force clean and let user re-login
     const fallbackTimer = setTimeout(() => {
       if (mounted && state.loading) {
-        setState(prev => ({ ...prev, loading: false, error: 'Tempo limite excedido ao carregar sessão.' }));
+        console.warn('[Auth] Session load timeout – clearing stale session');
+        forceCleanSignOut();
       }
-    }, 5000);
+    }, 6000);
 
     const loadSession = async (session: Session | null) => {
       if (!session?.user) {
-        if (mounted) setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+        clearState();
         return;
       }
       try {
         const { isAdmin, role } = await fetchAdminDetails(session.user.id);
         if (mounted) setState({ user: session.user, session, isAdmin, role, loading: false, error: null });
       } catch {
-        if (mounted) setState({ user: null, session: null, isAdmin: false, role: null, loading: false, error: null });
+        clearState();
       }
     };
 
     // 1. Manually fetch the current session (vital on page reload!)
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    //    Then verify it's still valid by attempting a token refresh.
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
-        if (mounted) setState(prev => ({ ...prev, loading: false, error: error.message }));
+        // Session retrieval failed – clear corrupted tokens automatically
+        console.warn('[Auth] getSession error, clearing stale session:', error.message);
+        await forceCleanSignOut();
+        return;
+      }
+
+      if (!session) {
+        // No session at all – nothing to clean, just show login
+        clearState();
+        return;
+      }
+
+      // Session exists – verify it's still valid by checking token expiry
+      const now = Math.floor(Date.now() / 1000);
+      const expiresAt = session.expires_at ?? 0;
+      const isExpired = expiresAt > 0 && expiresAt < now;
+
+      if (isExpired) {
+        // Token is expired, try to refresh it
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshData.session) {
+          // Refresh failed – stale session, auto-clean so user can re-login
+          console.warn('[Auth] Session expired and refresh failed – clearing stale session');
+          await forceCleanSignOut();
+          return;
+        }
+        // Refresh succeeded – use the new session
+        loadSession(refreshData.session);
       } else {
+        // Session looks valid
         loadSession(session);
       }
+    }).catch(async () => {
+      // Unexpected error (network, etc.) – clean up gracefully
+      console.warn('[Auth] Unexpected error loading session – clearing');
+      await forceCleanSignOut();
     });
 
     // 2. Listen for future auth changes (login, logout, token refresh)
